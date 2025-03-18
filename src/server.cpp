@@ -6,7 +6,6 @@
 extern uint8_t dataLed[5], seconds, mode, quarter;
 extern long lastSendTime;
 extern int tableData[32][4], tmrTelegramOff;
-extern Setting usp;
 extern ESP8266WebServer server;
 
 void notFoundHandler() {
@@ -62,7 +61,7 @@ String getFloat(float val, uint8_t brackets) {
     data["relaymode"] = string;
     data["checkDry"] = (upv.pv.checkDry) ? "встановлене" : "немає";
     data["rotation"] = String(upv.pv.timer) + "хвл.";
-    data["power"] = String(upv.pv.power) + "%";
+    data["dsplPW"] = String(upv.pv.dsplPW) + "%";
     data["flap"] = String(upv.pv.flap) + "%";
     if(upv.pv.program==0) string = "немає";
     else string = "№"+String(upv.pv.program);

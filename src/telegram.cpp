@@ -55,12 +55,12 @@ void sendStatus(){
   String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
   welcome += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
   welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
-  welcome += WORD_HUMIDITY + String(upv.pv.currMin) + "%" + NEW_STR;
-  welcome += WORD_HEATING + String(upv.pv.power) + "%" + NEW_STR;
-  welcome += WORD_DAMPER + String(upv.pv.fan) + "%" + NEW_STR;
-  welcome += WORD_TOTAL + String(upv.pv.currSec) + WORD_DAYS + NEW_STR;
+  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[2]/10,0) + NEW_STR;
+  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[3]/10,0) + NEW_STR;
+  welcome += WORD_HEATING + String(upv.pv.dsplPW) + WORD_PCT + NEW_STR;
+  welcome += WORD_FANSPEED + String(upv.pv.fanSpeed) + WORD_PCT + NEW_STR;
+  welcome += WORD_TIME + String(upv.pv.currHour) + ":" + String(upv.pv.currMin) + ":" + String(upv.pv.currSec) + NEW_STR;
   welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;
-  welcome += WORD_WARNING + String(upv.pv.timer) + NEW_STR;
   welcome += "```";
   bot.sendMessage(chatID, welcome, "Markdown");
 }

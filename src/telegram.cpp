@@ -57,7 +57,7 @@ void sendErrMessages(int err){
 }
 
 void sendStatus(){
-  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
+  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(chatID) + NEW_STR + NEW_STR;
   welcome += WORD_STATUS;
   if(upv.pv.portFlag & 4) welcome += WORD_WORK;
   else welcome += WORD_STOP;
@@ -73,13 +73,15 @@ void sendStatus(){
   welcome += NEW_STR;
   welcome += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
   welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
-  welcome += WORD_HEATING + String(upv.pv.dsplPW) + WORD_PCT + NEW_STR;
+  welcome += WORD_DURATION + String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS + NEW_STR;
   welcome += WORD_FANSPEED;
-  if(upv.pv.portFlag & 4) welcome += String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
+  if(upv.pv.portFlag & 2) welcome += String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
   else welcome += WORD_STOP;
   welcome += NEW_STR;
-  welcome += WORD_DURATION + String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS + NEW_STR;
-  if(upv.pv.portFlag & 4) welcome += WORD_TIME + String(upv.pv.currHour) + WORD_COLON + String(upv.pv.currMin) + WORD_COLON + String(upv.pv.currSec) + NEW_STR;
+  if(upv.pv.portFlag & 4){
+    welcome += WORD_TIME + String(upv.pv.currHour) + WORD_COLON + String(upv.pv.currMin) + WORD_COLON + String(upv.pv.currSec) + NEW_STR;
+    welcome += WORD_HEATING + String(upv.pv.dsplPW) + WORD_PCT + NEW_STR;
+  }
   if(upv.pv.errors) welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;
   else {welcome += WORD_MISTAKES;  welcome += WORD_NONE; welcome += NEW_STR;}
   welcome += GRAVE_ACCENT;

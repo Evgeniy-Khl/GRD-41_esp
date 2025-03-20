@@ -6,13 +6,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define MYPORT_TX 13
-#define MYPORT_RX 12
-#define RAMPV_SIZE   42
+#define MYPORT_TX 12
+#define MYPORT_RX 13
+#define RAMPV_SIZE   46
 
 enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};
-enum {CHECK, SPEED, WORK, NEWBUTT, VENTIL, PERFECT, RESERVE, PURGING};
 
 // const char* modeName[4] = {"СУШЫННЯ","ОБЖАРКА","ВАРЫННЯ","КОПЧЕННЯ"};
 

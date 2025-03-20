@@ -37,11 +37,11 @@ bool shouldSaveConfig = false;
 bool enabledListen = false;
 
 uint8_t receiveBuff[70], transmitBuff[70], dataLed[5] = {0}; // Массив для приема / передачи по UART
-uint8_t earlyMode = 0, mode = READEEPROM, tmrResetMode = 0, quarter = GET_PROG1, errors, seconds = 0;
+uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, quarter = GET_PROG1, errors, lastError, seconds = 0;
 int tableData[32][4] = {0}, tmrTelegramOff = 30;
 uint16_t begHeapSize, previousHeapSize;
 long lastSendTime = 0, allTime = 0; 
-Interval interval = INTERVAL_1000;
+Interval interval = INTERVAL_4000;
 
 void setup(){
     Serial.begin(115200);				// Serial port for debugging purposes
@@ -137,7 +137,7 @@ void setup(){
     //in seconds
     //wifiManager.setTimeout(120);
 
-    //fetches ssid and pass and tries to connect
+    //------------------------------------------------------------------------- fetches ssid and pass and tries to connect ---------
     //if it does not connect it starts an access point with the specified name
     //here  "AutoConnectAP"
     //and goes into a blocking loop awaiting configuration
@@ -164,7 +164,7 @@ void setup(){
     if (strlen(botToken) > 0) {
         bot.updateToken(botToken);
         // if(botSetup()) Serial.println("The command list was updated successfully.");
-        bot.sendMessage(chatID, "Climate-5.25", "");//bot.sendMessage("25235518", "Hola amigo!", "Markdown");
+        bot.sendMessage(chatID, "GRD Max", "");//bot.sendMessage("25235518", "Hola amigo!", "Markdown");
     }
     
     //save the custom parameters to FS
@@ -201,26 +201,6 @@ void setup(){
         file.close();
       }
     });
-    server.on("/setup", HTTP_GET, []() {
-      Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
-      File file = LittleFS.open("/setup.html", "r");
-      if (!file) {
-          server.send(404, "text/plain", "File Not Found");
-          return;
-      }
-      server.streamFile(file, "text/html");
-      file.close();
-    });
-    server.on("/table", HTTP_GET, []() {
-      Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
-      File file = LittleFS.open("/table.html", "r");
-      if (!file) {
-          server.send(404, "text/plain", "File Not Found");
-          return;
-      }
-      server.streamFile(file, "text/html");
-      file.close();
-    });
     // server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
     // server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
     // server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
@@ -239,15 +219,14 @@ void loop(){
   server.handleClient(); // Обработка входящих запросов
   long now = millis();
   if (now - lastSendTime > interval) {
-    if(earlyMode != mode){
+    // if(earlyMode != mode){
       Serial.printf("mode:%d; seconds:%d; All time:%ld; availableBytes:%d\n", mode, seconds, allTime, mySerial.available());
-      earlyMode = mode;
-    }
+    //   earlyMode = mode;
+    // }
     lastSendTime = now;
     Serial.print("Free heap size: ");
     Serial.println(system_get_free_heap_size());
 
-    if(seconds==0 && mode == READDEFAULT) {mode = READEEPROM; interval = INTERVAL_1000;}
     seconds += interval/1000;
     allTime += interval/1000;
     tmrTelegramOff -= interval/1000;  // if you use HTML telegram does not work (5 min.)
@@ -256,13 +235,7 @@ void loop(){
     //   previousHeapSize = lostHeapSize;
     //   Serial.printf("Lost heap size: %d bytes\n", lostHeapSize);
     // }
-    switch (mode){
-      case READEEPROM: getData(GET_EEPROM); break;
-      case READPROG:   getData(quarter); break;
-      case SAVEEEPROM: if(++tmrResetMode > 60) tmrResetMode = 0; mode = READDEFAULT; interval = INTERVAL_4000; break;
-      case SAVEPROG:   if(++tmrResetMode > 60) tmrResetMode = 0; mode = READDEFAULT; interval = INTERVAL_4000; break;
-      default: getData(GET_VALUES); break;
-    }
+    getData(GET_VALUES);
   } else {
     readData();
   }

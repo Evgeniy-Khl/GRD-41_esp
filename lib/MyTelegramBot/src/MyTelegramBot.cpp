@@ -116,11 +116,11 @@ String MyTelegramBot::sendPostToTelegram(const String& command, JsonObject paylo
   // Connect with api.telegram.org if not already connected
   if (!client->connected()) {
     #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("sendPostToTelegram()->[BOT Client]Connecting to server...."));
+        Serial.println(F("[BOT Client]Connecting to server...."));
     #endif
     if (!client->connect(TELEGRAM_HOST, TELEGRAM_SSL_PORT)) {
       #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("[BOT Client]Conection error"));
+        Serial.println(F("[BOT Client]Conection ERROR!"));
       #endif
     }
   }
@@ -490,7 +490,7 @@ bool MyTelegramBot::sendPostMessage(JsonObject payload, bool edit) { // added me
 
   bool sent = false;
   #ifdef TELEGRAM_DEBUG 
-    Serial.print(F("sendPostMessage: SEND Post Message: "));
+    Serial.print("SEND Post Message: ");
     serializeJson(payload, Serial);
     Serial.println();
   #endif 
@@ -499,11 +499,14 @@ bool MyTelegramBot::sendPostMessage(JsonObject payload, bool edit) { // added me
   if (payload["text"].is<String>()) {
     while (millis() < sttime + 8000) { // loop for a while to send the message
         String response = sendPostToTelegram((edit ? BOT_CMD("editMessageText") : BOT_CMD("sendMessage")), payload); // if edit is true we send a editMessageText CMD
-        #ifdef TELEGRAM_DEBUG  
-        Serial.println("sendPostMessage():" + response);
-        #endif
         sent = checkForOkResponse(response);
         if (sent) break;
+        else {
+          #ifdef TELEGRAM_DEBUG  
+          Serial.println("SEND Post Message ERROR! time:" + String(millis() - sttime));
+          #endif
+          delay(1000);
+        }
     }
   }
 

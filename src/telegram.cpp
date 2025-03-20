@@ -7,8 +7,8 @@ https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 #include "main.h"
 #include "server.h"
 // Определите язык
-#define LANGUAGE_EN  // Для английского
-// #define LANGUAGE_UA  // Для русского
+// #define LANGUAGE_EN  // Для английского
+#define LANGUAGE_UA  // Для русского
 
 #ifdef LANGUAGE_EN
 #include "strings_en.h"
@@ -19,6 +19,7 @@ https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 extern char botToken[], chatID [];
 extern MyTelegramBot bot;
 extern bool shouldSaveConfig;
+uint16_t speedFan[] = {1000,1200,1400,1600,1800,2000,2200,2400};
 
 bool botSetup(){
   return bot.setMyCommands(MAIN_MENU);
@@ -36,16 +37,20 @@ bool botSetup(){
 void sendErrMessages(int err){
   String errMess = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
   if(upv.pv.errors&1) errMess += SENSOR_ERROR_1;
+  else {
+    if(upv.pv.errors&4){
+      errMess += SENSOR_ERROR_4;
+      errMess += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
+    }
+  }
   if(upv.pv.errors&2) errMess += SENSOR_ERROR_2;
-  if(upv.pv.errors&4){
-    errMess += SENSOR_ERROR_4;
-    errMess += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
+  else {
+    if(upv.pv.errors&8){
+      errMess += SENSOR_ERROR_8;
+      errMess += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
+    }
   }
-  if(upv.pv.errors&8){
-    errMess += SENSOR_ERROR_8;
-    errMess += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
-  }
-  errMess += "```";
+  errMess += GRAVE_ACCENT;
   bot.sendMessage(chatID, errMess, "Markdown");
   // String keyboardJson = "[[{ \"text\" : \"Get a report\",  \"callback_data\" : \"/status\" }],[{ \"text\" : \"Help\", \"callback_data\" : \"/start\" }]]";
   // bot.sendMessageWithInlineKeyboard(chatID, errMess, "Markdown", keyboardJson);
@@ -53,15 +58,31 @@ void sendErrMessages(int err){
 
 void sendStatus(){
   String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
+  welcome += WORD_STATUS;
+  if(upv.pv.portFlag & 4) welcome += WORD_WORK;
+  else welcome += WORD_STOP;
+  welcome += NEW_STR;
+  welcome += WORD_MODE;
+  switch (upv.pv.modeCell){
+    case 0: welcome += WORD_MODE0; break;
+    case 1: welcome += WORD_MODE1; break;
+    case 2: welcome += WORD_MODE2; break;
+    case 3: welcome += WORD_MODE3; break;
+    default: welcome += NEW_STR; break;
+  }
+  welcome += NEW_STR;
   welcome += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
   welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
-  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[2]/10,0) + NEW_STR;
-  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[3]/10,0) + NEW_STR;
   welcome += WORD_HEATING + String(upv.pv.dsplPW) + WORD_PCT + NEW_STR;
-  welcome += WORD_FANSPEED + String(upv.pv.fanSpeed) + WORD_PCT + NEW_STR;
-  welcome += WORD_TIME + String(upv.pv.currHour) + ":" + String(upv.pv.currMin) + ":" + String(upv.pv.currSec) + NEW_STR;
-  welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;
-  welcome += "```";
+  welcome += WORD_FANSPEED;
+  if(upv.pv.portFlag & 4) welcome += String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
+  else welcome += WORD_STOP;
+  welcome += NEW_STR;
+  welcome += WORD_DURATION + String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS + NEW_STR;
+  if(upv.pv.portFlag & 4) welcome += WORD_TIME + String(upv.pv.currHour) + WORD_COLON + String(upv.pv.currMin) + WORD_COLON + String(upv.pv.currSec) + NEW_STR;
+  if(upv.pv.errors) welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;
+  else {welcome += WORD_MISTAKES;  welcome += WORD_NONE; welcome += NEW_STR;}
+  welcome += GRAVE_ACCENT;
   bot.sendMessage(chatID, welcome, "Markdown");
 }
 

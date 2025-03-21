@@ -173,36 +173,18 @@
                         }
                     } else if (data.status === 1) {
                         // Заполнение формы текущими настройками
-                        document.getElementById('spT0').value = (data.spT0 / 10).toFixed(1);
-                        document.getElementById('spT1').value = (data.spT1 / 10).toFixed(1);
-                        document.getElementById('spRH0').value = data.spRH0;
-                        document.getElementById('spRH1').value = data.spRH1;
-                        document.getElementById('flpNow').value = data.flpNow;
-                        document.getElementById('program').value = data.program;
-                        document.getElementById('ventMode').value = data.ventMode;
-                        document.getElementById('extendMode').value = data.extendMode;
-                        document.getElementById('relayMode').value = data.relayMode;
-                        document.getElementById('checkDry').value = data.checkDry;
-                        document.getElementById('rotate0').value = data.rotate0;
-                        document.getElementById('rotate1').value = data.rotate1;
-                        document.getElementById('alarm0').value = (data.alarm0 / 10).toFixed(1);
-                        document.getElementById('alarm1').value = (data.alarm1 / 10).toFixed(1);
-                        document.getElementById('vent0').value = (data.vent0 / 10).toFixed(1);
-                        document.getElementById('vent1').value = (data.vent1 / 10).toFixed(1);
-                        document.getElementById('extOn').value = (data.extOn / 10).toFixed(1);
-                        document.getElementById('extOff').value = (data.extOff / 10).toFixed(1);
-                        document.getElementById('minRun').value = (data.minRun / 10).toFixed(1);
-                        document.getElementById('maxRun').value = data.maxRun;
-                        document.getElementById('period').value = data.period;
-                        document.getElementById('hysteresis').value = (data.hysteresis / 10).toFixed(1);
-                        document.getElementById('air0').value = data.air0;
-                        document.getElementById('air1').value = data.air1;
-                        document.getElementById('flpClose').value = data.flpClose;
-                        document.getElementById('flpOpen').value = data.flpOpen;
-                        document.getElementById('pkoff0').value = data.pkoff0;
-                        document.getElementById('ikoff0').value = data.ikoff0;
-                        document.getElementById('pkoff1').value = data.pkoff1;
-                        document.getElementById('ikoff1').value = data.ikoff1;
+                        document.getElementById('set0').value = data.set0;
+                        document.getElementById('set1').value = data.set1;
+                        document.getElementById('set2').value = data.set2;
+                        document.getElementById('set3').value = data.set3;
+						document.getElementById('set4').value = data.set4;
+                        document.getElementById('set5').value = data.set5;
+                        document.getElementById('set6').value = data.set6;
+                        document.getElementById('set7').value = data.set7;
+                        document.getElementById('set8').value = data.set8;
+                        document.getElementById('set9').value = (data.set9 / 10).toFixed(1);
+                        document.getElementById('set10').value = (data.set10 / 10).toFixed(1);
+                        document.getElementById('set11').value = data.set11;
                         document.getElementById('identif').value = data.identif;
                     }
                 })
@@ -219,8 +201,8 @@
             // Создание объекта FormData из формы
             const formData = new FormData(event.target);
 
-            // Преобразование значений для spT0, spT1, alarm0, alarm1, extOn, extOff, minRun
-            const fieldsToTransform = ['spT0', 'spT1', 'alarm0', 'alarm1', 'vent0', 'vent1', 'extOn', 'extOff', 'minRun', 'hysteresis'];
+            // Преобразование значений для set9, set10
+            const fieldsToTransform = ['set9', 'set10'];
 
             fieldsToTransform.forEach(field => {
                 const inputValue = parseFloat(formData.get(field));
@@ -277,118 +259,55 @@
 <div id="grad1">
 <h2>Налаштування приладу</h2>
 <form action="/set_parameters"  id="settingsForm" method="POST">
-    <label for="spT0">Сухий датчик (від 25.0 до 40.0°C):</label>
-    <input type="number" name="spT0" id="spT0" required min="25" max="40" step="0.1">
+    <label for="set0">Датчик камери (від 25 до 125°C):</label>
+    <input type="number" name="set0" id="set0" required min="25" max="125">
 
-    <label for="spT1">Вологий датчик (від 25.0 до 40.0°C):</label>
-    <input type="number" name="spT1" id="spT1" required min="25" max="40" step="0.1">
+    <label for="set1">Датчик продукту (від 25 до 125°C):</label>
+    <input type="number" name="set1" id="set1" required min="25" max="125">
 
-    <label for="spRH0">Вологість (від 20 до 90%):</label>
-    <input type="number" name="spRH1" id="spRH1" min="20" max="90" required>
+    <label for="set2">Датчик диму (від 25 до 125°C):</label>
+    <input type="number" name="set2" id="set2" required min="25" max="125">
 	
-	<label for="flpNow">Положення заслінки (від 0 до 100%):</label>
-    <input type="number" name="flpNow" id="flpNow" required>
+	<label for="set3">Датчик вологий (від 25 до 125°C):</label>
+    <input type="number" name="set3" id="set3" required min="25" max="125">
 	
-    <label for="program">Виконувана програма:</label>
-	<select name="program" id="program" onchange="updateDisplay()">
-        <option value="0">НЕМАЄ</option>
-        <option value="1">Програма №1</option>
-        <option value="2">Програма №2</option>
-		<option value="3">Програма №3</option>
-        <option value="4">Програма №4</option>
-    </select>	
+	<label for="set4">Тривалість режиму (хвилин):</label>
+    <input type="number" name="set4" id="set4" min="1" max="1000" required>
+	
+    <label for="set5">Швидкість вентилятора (об/хвл.):</label>
+	<select name="set5" id="set5" onchange="updateDisplay()">
+        <option value="255">НЕМАЄ</option>
+        <option value="0">1000</option>
+        <option value="1">1200</option>
+		<option value="2">1400</option>
+        <option value="3">1600</option>
+		<option value="4">1800</option>
+        <option value="5">2000</option>
+		<option value="6">2200</option>
+        <option value="7">2400</option>
+    </select>
 
-	<label for="ventMode">Режим роботи вентиляції:</label>
-    <select name="ventMode" id="ventMode">
+	<label for="set6">Таймер "ON" (секунд)</label>
+    <input type="number" name="set6" id="set6" min="0" max="1000" required>
+
+    <label for="set7">Таймер "OFF" (секунд)</label>
+    <input type="number" name="set7" id="set7" min="0" max="1000" required>
+	
+	<label for="set8">Тривалість продувки (секунд):</label>
+    <input type="number" name="set8" id="set8" required>
+	
+	<label for="set9">Аварія (від 0,5 до 10°C):</label>
+    <input type="number" name="set9" id="set9" min="0.5" max="10" step="0.1" required>
+	
+	<label for="set10">Гістерезис (від 0,1 до 5°C):</label>
+    <input type="number" name="set10" id="set10" min="0.5" max="10" step="0.1" required>
+	
+	<label for="set11">Режим роботи:</label>
+    <select name="set11" id="set11">
+        <option value="0">НАГРІВ</option>
         <option value="1">ОХОЛОДЖЕННЯ</option>
-        <option value="2">ОСУШЕННЯ</option>
-        <option value="3">ОХОЛОДЖЕННЯ + ОСУШЕННЯ</option>
+        <option value="2">Сирена відключена</option>
     </select>
-	
-    <label for="extendMode">Розширений режим роботи:</label>
-    <select name="extendMode" id="extendMode">
-        <option value="0">СИРЕНА</option>
-        <option value="1">АВАРІЙНЕ ВІДКЛЮЧЕННЯ</option>
-        <option value="2">ДОПОМІЖНИЙ НАГРІВАЧ</option>
-    </select>
-
-    <label for="relayMode">Релейний режим роботи:</label>
-    <select name="relayMode" id="relayMode">
-        <option value="0">НЕМАЄ</option>
-        <option value="1">За кананалом №1</option>
-        <option value="2">За кананалом №2</option>
-        <option value="3">За кан.№1 и №2</option>
-        <option value="4">Кан.№2 імпульсний</option>
-    </select>
-	
-	<label for="hysteresis">Гістерезис (°C):</label>
-    <input type="number" name="hysteresis" id="hysteresis" min="0.1" max="25"  step="0.1" required>
-
-    <label for="checkDry">Затримка регулювання кан.№2</label>
-    <select name="checkDry" id="checkDry">
-		<option value="0">НЕМАЄ</option>
-        <option value="1">ПРИСУТНЯ</option>
-	</select>
-	
-	<label for="rotate0">Поворот "режим-0" (минут)</label>
-    <input type="number" name="rotate0" id="rotate0" min="1" max="250" required>
-
-    <label for="rotate1">Поворот "режим-1" (секунд)</label>
-    <input type="number" name="rotate1" id="rotate1" min="0" max="250" required>
-	
-	<label for="vent0">Увімкнення вентиляції по кан.№1 (дельта°C):</label>
-    <input type="number" name="vent0" id="vent0" min="0.1" max="25"  step="0.1" required>
-
-    <label for="vent1">Увімкнення вентиляції по кан.№2 (дельта°C):</label>
-    <input type="number" name="vent1" id="vent1" min="0.1" max="25"  step="0.1" required>
-	
-	<label for="alarm0">Увімкнення попередження по кан.№1 (дельта°C):</label>
-    <input type="number" name="alarm0" id="alarm0" min="0.1" max="25"  step="0.1" required>
-
-    <label for="alarm1">Увімкнення попередження по кан.№2 (дельта°C):</label>
-    <input type="number" name="alarm1" id="alarm1" min="0.1" max="25"  step="0.1" required>
-	
-	<label for="extOn">Увімкнення канал №3 (дельта°C):</label>
-    <input type="number" name="extOn" id="extOn" min="0.1" max="25" step="0.1" required>
-
-    <label for="extOff">Відключення канал №3 (дельта°C):</label>
-    <input type="number" name="extOff" id="extOff" min="0.1" max="25" step="0.1" required>
-
-    <label for="minRun">Помпа мінімум роботи (секунд):</label>
-    <input type="number" name="minRun" id="minRun" min="0.1" max="25" step="0.1" required>
-
-    <label for="maxRun">Помпа максимум роботи (секунд):</label>
-    <input type="number" name="maxRun" id="maxRun" min="2" max="250" required>
-
-    <label for="period">Помпа пауза (секунд):</label>
-    <input type="number" name="period" id="period" min="1" max="250" required>
-	
-	<label for="air0">Провітрювання пауза (хвилин):</label>
-    <input type="number" name="air0" id="air0" min="1" max="250" required>
-
-    <label for="air1">Провітрювання робота (секунд):</label>
-    <input type="number" name="air1" id="air1" min="0" max="250" required>
-
-    <label for="flpClose">Заслінка закрита (одиниць):</label>
-    <input type="number" name="flpClose" id="flpClose" min="0" max="250" required>
-
-    <label for="flpOpen">Заслінка відкрита (одиниць):</label>
-    <input type="number" name="flpOpen" id="flpOpen" min="0" max="250" required>
-
-    <label for="pkoff0">Пропорційний №1 (одиниць)</label>
-    <input type="number" name="pkoff0" id="pkoff0" min="1" max="250" required>
-
-    <label for="ikoff0">Інтегральний №1 (одиниць)</label>
-    <input type="number" name="ikoff0" id="ikoff0" min="1" max="250" required>
-	
-	<label for="pkoff1">Пропорційний №2 (одиниць)</label>
-    <input type="number" name="pkoff1" id="pkoff1" min="1" max="250" required>
-
-    <label for="ikoff1">Інтегральний №2 (одиниць)</label>
-    <input type="number" name="ikoff1" id="ikoff1" min="1" max="250" required>
-	
-	<label for="spRH1">Корекція вологості (від -40 до 40%)</label>
-    <input type="number" name="spRH0" id="spRH0" min="-40" max="40" required>
 	
 	<label for="identif">Номер приладу</label>
     <input type="number" name="identif" id="identif" min="1" max="250" required>

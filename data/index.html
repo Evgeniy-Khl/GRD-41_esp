@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!-- 
+  Rui Santos
+  Complete project details at https://RandomNerdTutorials.com  
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <!--link rel="icon" href="https://www.flaticon.com/packs/metaverse-18872723" type="image/png"-->
+  <!--link rel="stylesheet" type="text/css" href="style.css"-->
+  <title>GRD Max</title>
+  <!-- Стилі для елементів сторінки -->
+  <style>
+	html {
+	  font-family: Arial;
+	  display: inline-block;
+	  margin: 0px auto;
+	  text-align: center;
+	}
+    #grad1 {
+      height: 0px auto;
+      background-color: #9d9e9b; /* For browsers that do not support gradients */
+      background-image: linear-gradient(to bottom right, #585957, #db9951);
+    }
+    h1 {
+  	  color: white;
+  	  text-align: center;
+	}
+	p {
+	  font-size: 1.5rem;
+	}
+	#rcorners0, #rcorners1 {
+	  border-radius: 15px;
+	  padding: 5px;
+	  width: 300px;
+	  height: 0px auto;
+	  margin: 0px auto;
+	}
+	#rcorners0 { background: #89f594; }
+	#rcorners1 { background: #89f594; }
+	
+	.container {
+	  display: grid;
+	  grid-template-columns: 1fr auto; /* Первый элемент занимает доступное пространство, второй — по содержимому */
+	  align-items: center; /* Выравнивает элементы по вертикали */
+	  border-radius: 10px;
+	  padding: 5px;
+	  width: 300px; /* Занимает всю доступную ширину */
+	  height: 0px auto;
+	  margin: 0px auto;
+	  background: LightGray;
+	}
+   
+	button {
+	  display: inline-block;
+	  background-color: #008CBA;
+	  border: none;
+	  border-radius: 4px;
+	  color: white;
+	  padding: 10px 10px;
+	  text-decoration: none;
+	  font-size: 30px;
+	  margin: 2px;
+	  cursor: pointer;
+	}
+
+	.units {
+	  font-size: 1.2rem;
+	 }
+	.sensor-labels {
+	  font-size: 1.5rem;
+	}
+	.set-labels {
+	  font-size: 1.9rem;
+	}
+
+	#ledsTable {
+        width: 300px;
+        height: 0px auto;
+		margin: 0px auto;
+        border: 0px solid black;
+        border-radius: 10px;       
+    }
+    #ledsTable td {
+        border: 1px solid black;
+		border-radius: 20px;
+        padding: 8px;
+        text-align: center;
+		background-color: #6e6e6e;
+    }
+	/*
+    .sun { background-color: #ffdd00; }
+    .water { background-color: #00aaff; }
+    .cyclone { background-color: #cccccc; }
+    .siren { background-color: #ff0000; }
+	*/
+  </style>
+</head>
+<body>
+  <div id="grad1">
+    <h1 id="model">GRD Max</h1>
+	<div class="container">
+	  <span class="sensor-labels">Стан</span>
+      <span style="font-size:1.5em; color:#000000" id="status">В РОБОТІ</span>
+      <span class="sensor-labels">Режим</span>
+      <span style="font-size:1.5em; color:#000000" id="modeCell">КОПЧЕННЯ</span>
+	</div>
+	<p></p>
+    <p id="rcorners0">
+      <span class="sensor-labels">Температура в камері</span><br/>
+      <span style="font-size:2.0em; color:#000000" id="temperature0">--.-</span>
+      <sup style="font-size:1.3em; color:#000000" id="settemp0">[--.-]</sup>
+      <sup class="units">&deg;C</sup>
+    </p>
+	<p></p>
+    <p id="rcorners1">
+      <span class="sensor-labels">Температура в продукті</span><br/>
+      <span style="font-size:2.0em; color:#000000" id="temperature1">--.-</span>
+      <sup style="font-size:1.3em; color:#000000" id="settemp1">[--.-]</sup>
+      <sup class="units">&deg;C</sup>
+    </p>
+	<p></p>
+    <div class="container">
+	  <span class="sensor-labels">Датчик диму</span>
+      <span style="font-size:1.2em; color:#000000" id="temperature2">--.-</span>
+	  <span class="sensor-labels">Вологий датчик</span>
+      <span style="font-size:1.2em; color:#000000" id="temperature3">--.-</span>
+	  <span class="sensor-labels">Вентилятор</span>
+      <span style="font-size:1.2em; color:#000000" id="fanSpeed">1000 об/хвл.</span>
+	  <span class="sensor-labels">Тривалість</span>
+      <span style="font-size:1.2em; color:#000000" id="duration">2 год. 30 хвл.</span>
+	  <span class="sensor-labels">Час роботи</span>
+      <span style="font-size:1.2em; color:#000000" id="time">00:00:00</span>
+      <span class="sensor-labels">Нагрів;</span>
+      <span style="font-size:2.0em; color:#000000" id="power">100 %</span>
+	  <span class="sensor-labels">Помилки</span>
+      <span style="font-size:1.5em; color:#000000" id="errors">немає</span>
+    </div>
+    <p><a href="/setup"><button>Налаштування</button></a></p>
+  </div>
+</body>
+<script>
+function fetchData() {
+    // Запрос данных о температуре и влажности
+    var xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(this.responseText);
+            console.log("Отримані дані:", jsonResponse);
+            
+			document.getElementById("model").innerHTML = jsonResponse.model;
+			document.getElementById("status").innerHTML = jsonResponse.status;
+			document.getElementById("modeCell").innerHTML = jsonResponse.modeCell;
+            document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
+            document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
+            document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
+            document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
+			
+            document.getElementById("temperature2").innerHTML = jsonResponse.temperature2;
+            document.getElementById("temperature3").innerHTML = jsonResponse.temperature3;
+			document.getElementById("fanSpeed").innerHTML = jsonResponse.fanSpeed;
+			document.getElementById("duration").innerHTML = jsonResponse.duration;
+			document.getElementById("time").innerHTML = jsonResponse.time;
+            document.getElementById("power").innerHTML = jsonResponse.power;
+			document.getElementById("errors").innerHTML = jsonResponse.errors;
+			
+        }
+    };
+
+    console.log("Надсилаємо запит на отримання даних");
+    xhttp.open("GET", "/getvalues", true);
+    xhttp.send();
+}
+
+// Первичное заполнение данных при загрузке страницы
+window.onload = function() {
+    fetchData(); // Первоначальный запрос
+    setInterval(fetchData, 2000); // Периодические обновления
+};
+</script>
+</html>

@@ -1,11 +1,21 @@
 // server.cpp
 #include <ArduinoJson.h>
 #include "main.h"
+// Определите язык
+// #define LANGUAGE_EN  // Для английского
+#define LANGUAGE_UA  // Для русского
+
+#ifdef LANGUAGE_EN
+#include "strings_en.h"
+#elif defined(LANGUAGE_UA)
+#include "strings_ua.h"
+#endif
 
 
+extern char chatID [];
 extern uint8_t dataLed[5], seconds, mode, quarter;
 extern long lastSendTime;
-extern int tableData[32][4], tmrTelegramOff;
+extern int tableData[32][4], tmrTelegramOff, speedFan[];
 extern ESP8266WebServer server;
 
 void notFoundHandler() {
@@ -25,64 +35,60 @@ String getFloat(float val, uint8_t brackets) {
   return String(buffer); // Возвращаем отформатированную строку
 }
 
-/* void respondsValues() {
+void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 300;
+    uint8_t fanSpeed;    // 1 байт ind=36 скорость вращения вентилятора
+    uint8_t pvOut;       // 1 байт ind=37 активные выходы реле
+    uint8_t dsplPW;      // 1 байт ind=38 мощность подаваемая на тены
+    uint8_t errors;      // 1 байт ind=39 ошибки
+    uint8_t currHour;    // 1 байт ind=40 часы
+    uint8_t currMin;     // 1 байт ind=41 минуты
+    uint8_t currSec;     // 1 байт ind=42 секунды
     JsonDocument data;
-    data["model"] = "Клімат-5." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(upv.pv.node);
+    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(chatID);
+    if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
+    else data["status"] = WORD_STOP;
+    switch (upv.pv.modeCell){
+      case 0: data["modeCell"] = WORD_MODE0; break;
+      case 1: data["modeCell"] = WORD_MODE1; break;
+      case 2: data["modeCell"] = WORD_MODE2; break;
+      case 3: data["modeCell"] = WORD_MODE3; break;
+      default: data["modeCell"] = ""; break;
+    }
     data["temperature0"] = getFloat((float)upv.pv.t[0]/10,0);
     data["temperature1"] = getFloat((float)upv.pv.t[1]/10,0);
-    data["settemp0"] = getFloat((float)upv.pv.spT[0]/10,1);
-    data["settemp1"] = getFloat((float)upv.pv.spT[1]/10,1);
-    data["humidity"] = String(upv.pv.rH);
-    data["sethum"] = "[" + String(upv.pv.spRH[1]) + "]";
-    switch (upv.pv.ventMode){
-      case 1: string = "охолодження"; break;
-      case 2: string = "осущення"; break;
-      case 3: string = "охол. и осуш."; break;
-      default: string = ""; break;
-      }
-    data["ventmode"] = string;
-    switch (upv.pv.extMode){
-    case 0: string = "сирена"; break;
-    case 1: string = "відключення"; break;
-    case 2: string = "нагрівач"; break;
-    default: string = ""; break;
+    data["settemp0"] = String(upv.pv.set[0]);
+    data["settemp1"] = String(upv.pv.set[1]);
+    data["temperature2"] = getFloat((float)upv.pv.t[2]/10,0);
+    data["temperature3"] = getFloat((float)upv.pv.t[3]/10,0);
+    if(upv.pv.portFlag & 2) data["fanSpeed"] = String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
+    else data["fanSpeed"] = WORD_STOP;
+    if(upv.pv.portFlag & 4){
+      char time[12];
+      sprintf(time,"%02d:%02d:%02d", upv.pv.currHour, upv.pv.currMin, upv.pv.currSec);
+      data["duration"] = String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS;
+      data["time"] = String(time);
+      data["power"] = String(upv.pv.dsplPW) + WORD_PCT;
     }
-    data["extmode"] = string;
-    switch (upv.pv.relayMode){
-      case 0: string = "немає"; break;
-      case 1: string = "канал №1"; break;
-      case 2: string = "канал №2"; break;
-      case 3: string = "№1 и №2"; break;
-      case 4: string = "імпульс"; break;
-      default: string = ""; break;
-      }
-    data["relaymode"] = string;
-    data["checkDry"] = (upv.pv.checkDry) ? "встановлене" : "немає";
-    data["rotation"] = String(upv.pv.timer) + "хвл.";
-    data["dsplPW"] = String(upv.pv.dsplPW) + "%";
-    data["flap"] = String(upv.pv.flap) + "%";
-    if(upv.pv.program==0) string = "немає";
-    else string = "№"+String(upv.pv.program);
-    data["program"] = string;
-    data["currDay"] = String(upv.pv.currDay) + "діб.";
-    data["led0"] = dataLed[0] ? "ON" : "OFF" ;
-    data["led1"] = dataLed[1] ? "ON" : "OFF" ;
-    data["led2"] = dataLed[2] ? "ON" : "OFF" ;
-    data["led3"] = dataLed[3] ? "ON" : "OFF" ;
-    data["led4"] = dataLed[4] ? "ON" : "OFF" ;
+    
+    if(upv.pv.errors) data["errors"] = String(upv.pv.errors);
+    else data["errors"] = WORD_NONE;
     
     serializeJson(data, jsonResponse);
     // Serial.printf("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
     // Serial.println("out=" + response);
     server.send(200, "application/json", jsonResponse);
     // Serial.printf("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
-} */
+}
 
 /* void respondsEeprom(){
     String jsonResponse;
     JsonDocument doc;
+
+        
+        doc["model"] = upv.pv.model;
+        
         doc["spT0"] = usp.sp.spT[0];
         doc["spT1"] = usp.sp.spT[1];
         doc["spRH0"] = usp.sp.spRH[0];
@@ -122,8 +128,8 @@ String getFloat(float val, uint8_t brackets) {
         mode = SAVEEEPROM; interval = INTERVAL_1000;
         server.send(200, "application/json", jsonResponse); // Отправляем ответ
         // Serial.printf("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
-} */
-
+}
+ */
 /* void acceptEeprom() {
   // Логирование всех параметров
   Serial.printf("The SERVER has accepted EEPROM: %d, %ld\n", seconds, millis() - lastSendTime);
@@ -172,71 +178,3 @@ String getFloat(float val, uint8_t brackets) {
 
   saveEeprom();
 } */
-
-  void respondsProgram(){
-    String jsonResponse;
-    JsonDocument doc;
-    mode = SAVEPROG; interval = INTERVAL_1000; quarter = SET_PROG4+1;
-
-    for (int i = 0; i < 32; i++) {
-        JsonArray row = doc.add<JsonArray>();
-        for (int j = 0; j < 4; j++) {
-            row.add(tableData[i][j]);
-        }
-    }
-    serializeJson(doc, jsonResponse);
-    Serial.printf("SERVER responds to the client with PROGRAM: %d,%ld\n",seconds,millis()-lastSendTime);
-    Serial.println("jsonResponse:"+jsonResponse);
-    server.send(200, "application/json", jsonResponse);
-  }
-
-  //https://arduinojson.org/v7/assistant/#/step1
-  void programDeser(String input){
-    // Stream& input;
-    JsonDocument doc;
-
-    DeserializationError error = deserializeJson(doc, input);
-
-    if (error) {
-      Serial.print("deserializeJson() failed: ");
-      Serial.println(error.c_str());
-      return;
-    }
-
-    JsonArray data = doc["data"];
-    const int rows = 32; // Количество строк
-    const int cols = 4;  // Количество столбцов
-    Serial.println("programDeser()");
-
-    for (int i = 0; i < rows; i++) {
-      JsonArray data_i = data[i];
-      for (int j = 0; j < cols; j++) {
-        tableData[i][j] = data_i[j]; // Заполнение массива
-        Serial.print(tableData[i][j]); Serial.print("; ");
-      }
-      Serial.println("||");
-    }
-  }
-
-  void acceptProgram() {
-    String jsonData;
-
-    // Проверка наличия параметра "data" в запросе
-    if (server.hasArg("data")) {
-        jsonData = server.arg("data");
-        Serial.println("jsonData: " + jsonData); // Логирование полученных данных
-        
-        // Отправляем статус 200
-        server.send(200); 
-        
-        // Обработка полученных данных
-        programDeser(jsonData);
-        mode = SAVEPROG; interval = INTERVAL_1000;
-        quarter = SET_PROG1;
-        
-        Serial.printf("Accept Program: %d, %ld\n", seconds, millis() - lastSendTime);
-    } else {
-        // Отправка сообщения об ошибке, если параметр отсутствует
-        server.send(400, "text/plain", "Ошибка: нет данных");
-    }
-  }

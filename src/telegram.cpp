@@ -40,7 +40,7 @@ void sendErrMessages(int err){
   else {
     if(upv.pv.errors&4){
       errMess += SENSOR_ERROR_4;
-      errMess += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
+      errMess += WORD_CHAMBER + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
     }
   }
   if(upv.pv.errors&2) errMess += SENSOR_ERROR_2;
@@ -71,15 +71,21 @@ void sendStatus(){
     default: welcome += NEW_STR; break;
   }
   welcome += NEW_STR;
-  welcome += WORD_AIR + getFloat((float)upv.pv.t[0]/10,0) + NEW_STR;
-  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0) + NEW_STR;
-  welcome += WORD_DURATION + String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS + NEW_STR;
+  welcome += WORD_CHAMBER + getFloat((float)upv.pv.t[0]/10,0);
+  welcome += OPEN_BRACKET + String(upv.pv.set[0]) + CLOSE_BRACKET + NEW_STR;
+  welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0);
+  welcome += OPEN_BRACKET + String(upv.pv.set[1]) + CLOSE_BRACKET + NEW_STR;
+  welcome += WORD_SMOKE   + getFloat((float)upv.pv.t[2]/10,0);
+  welcome += WORD_HUMID   + getFloat((float)upv.pv.t[3]/10,0);
   welcome += WORD_FANSPEED;
   if(upv.pv.portFlag & 2) welcome += String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
   else welcome += WORD_STOP;
   welcome += NEW_STR;
   if(upv.pv.portFlag & 4){
-    welcome += WORD_TIME + String(upv.pv.currHour) + WORD_COLON + String(upv.pv.currMin) + WORD_COLON + String(upv.pv.currSec) + NEW_STR;
+    char time[12];
+    sprintf(time,"%02d:%02d:%02d", upv.pv.currHour, upv.pv.currMin, upv.pv.currSec);
+    welcome += WORD_DURATION + String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS + NEW_STR;
+    welcome += WORD_TIME + String(time) + NEW_STR;
     welcome += WORD_HEATING + String(upv.pv.dsplPW) + WORD_PCT + NEW_STR;
   }
   if(upv.pv.errors) welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;

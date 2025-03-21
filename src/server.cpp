@@ -75,45 +75,21 @@ void respondsValues() {
     // Serial.printf("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
-/* void respondsEeprom(){
+void respondsEeprom(){
     String jsonResponse;
     JsonDocument doc;
-
-        
-        doc["model"] = upv.pv.model;
-        
-        doc["spT0"] = usp.sp.spT[0];
-        doc["spT1"] = usp.sp.spT[1];
-        doc["spRH0"] = usp.sp.spRH[0];
-        doc["spRH1"] = usp.sp.spRH[1];
-        doc["ventMode"] = usp.sp.ventMode;
-        doc["extendMode"] = usp.sp.extMode;
-        doc["relayMode"] = usp.sp.relayMode;
-        doc["checkDry"] = usp.sp.checkDry;
-        doc["rotate0"] = usp.sp.rotate[0];
-        doc["rotate1"] = usp.sp.rotate[1];
-        doc["program"] = usp.sp.program;
-        doc["alarm0"] = usp.sp.alarm[0];
-        doc["alarm1"] = usp.sp.alarm[1];
-        doc["vent0"] = usp.sp.vent[0];
-        doc["vent1"] = usp.sp.vent[1];
-        doc["extOn"] = usp.sp.extOn;
-        doc["extOff"] = usp.sp.extOff;
-        doc["minRun"] = usp.sp.minRun;
-        doc["maxRun"] = usp.sp.maxRun;
-        doc["period"] = usp.sp.period;
-        doc["hysteresis"] = usp.sp.hysteresis;
-        doc["air0"] = usp.sp.air[0];
-        doc["air1"] = usp.sp.air[1];
-        doc["flpClose"] = usp.sp.flpClose;
-        doc["flpOpen"] = usp.sp.flpOpen;
-        doc["flpNow"] = usp.sp.flpNow;
-        doc["pkoff0"] = usp.sp.pkoff[0];
-        doc["pkoff1"] = usp.sp.pkoff[1];
-        doc["ikoff0"] = usp.sp.ikoff[0];
-        doc["ikoff1"] = usp.sp.ikoff[1];
-        doc["identif"] = usp.sp.identif;
-        doc["status"] = usp.sp.status;
+        doc["set0"] = upv.pv.set[0];
+        doc["set1"] = upv.pv.set[1];
+        doc["set2"] = upv.pv.set[2];
+        doc["set3"] = upv.pv.set[3];
+        doc["set4"] = upv.pv.set[4];
+        doc["set5"] = upv.pv.set[5];
+        doc["set6"] = upv.pv.set[6];
+        doc["set7"] = upv.pv.set[7];
+        doc["set8"] = upv.pv.set[8];
+        doc["set9"] = upv.pv.set[9];
+        doc["set10"] = upv.pv.set[10];
+        doc["set11"] = upv.pv.set[11];
 
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         Serial.printf("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
@@ -122,8 +98,8 @@ void respondsValues() {
         server.send(200, "application/json", jsonResponse); // Отправляем ответ
         // Serial.printf("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
 }
- */
-/* void acceptEeprom() {
+
+void acceptEeprom() {
   // Логирование всех параметров
   Serial.printf("The SERVER has accepted EEPROM: %d, %ld\n", seconds, millis() - lastSendTime);
   
@@ -134,40 +110,21 @@ void respondsValues() {
       // Логирование параметров (раскомментируйте, если нужно)
       // Serial.printf("Parameter: %s, Value: %s\n", paramName.c_str(), paramValue.c_str());
       
-      if (paramName == "spT0") usp.sp.spT[0] = paramValue.toInt();
-      else if (paramName == "spT1") usp.sp.spT[1] = paramValue.toInt();
-      else if (paramName == "spRH0") usp.sp.spRH[0] = paramValue.toInt();
-      else if (paramName == "spRH1") usp.sp.spRH[1] = paramValue.toInt();
-      else if (paramName == "ventMode") usp.sp.ventMode = paramValue.toInt();
-      else if (paramName == "extendMode") usp.sp.extMode = paramValue.toInt();
-      else if (paramName == "relayMode") usp.sp.relayMode = paramValue.toInt();
-      else if (paramName == "checkDry") usp.sp.checkDry = paramValue.toInt();
-      else if (paramName == "rotate0") usp.sp.rotate[0] = paramValue.toInt();
-      else if (paramName == "rotate1") usp.sp.rotate[1] = paramValue.toInt();
-      else if (paramName == "program") usp.sp.program = paramValue.toInt();
-      else if (paramName == "alarm0") usp.sp.alarm[0] = paramValue.toInt();
-      else if (paramName == "alarm1") usp.sp.alarm[1] = paramValue.toInt();
-      else if (paramName == "vent0") usp.sp.vent[0] = paramValue.toInt();
-      else if (paramName == "vent1") usp.sp.vent[1] = paramValue.toInt();
-      else if (paramName == "extOn") usp.sp.extOn = paramValue.toInt();
-      else if (paramName == "extOff") usp.sp.extOff = paramValue.toInt();
-      else if (paramName == "minRun") usp.sp.minRun = paramValue.toInt();
-      else if (paramName == "maxRun") usp.sp.maxRun = paramValue.toInt();
-      else if (paramName == "period") usp.sp.period = paramValue.toInt();
-      else if (paramName == "hysteresis") usp.sp.hysteresis = paramValue.toInt();
-      else if (paramName == "air0") usp.sp.air[0] = paramValue.toInt();
-      else if (paramName == "air1") usp.sp.air[1] = paramValue.toInt();
-      else if (paramName == "flpClose") usp.sp.flpClose = paramValue.toInt();
-      else if (paramName == "flpOpen") usp.sp.flpOpen = paramValue.toInt();
-      else if (paramName == "flpNow") usp.sp.flpNow = paramValue.toInt();
-      else if (paramName == "pkoff0") usp.sp.pkoff[0] = paramValue.toInt();
-      else if (paramName == "pkoff1") usp.sp.pkoff[1] = paramValue.toInt();
-      else if (paramName == "ikoff0") usp.sp.ikoff[0] = paramValue.toInt();
-      else if (paramName == "ikoff1") usp.sp.ikoff[1] = paramValue.toInt();
-      else if (paramName == "identif") usp.sp.identif = paramValue.toInt();
+      if (paramName == "set0") upv.pv.set[0] = paramValue.toInt();
+      else if (paramName == "set1") upv.pv.set[1] = paramValue.toInt();
+      else if (paramName == "set2") upv.pv.set[2] = paramValue.toInt();
+      else if (paramName == "set3") upv.pv.set[3] = paramValue.toInt();
+      else if (paramName == "set4") upv.pv.set[4] = paramValue.toInt();
+      else if (paramName == "set5") upv.pv.set[5] = paramValue.toInt();
+      else if (paramName == "set6") upv.pv.set[6] = paramValue.toInt();
+      else if (paramName == "set7") upv.pv.set[7] = paramValue.toInt();
+      else if (paramName == "set8") upv.pv.set[8] = paramValue.toInt();
+      else if (paramName == "set9") upv.pv.set[9] = paramValue.toInt();
+      else if (paramName == "set10") upv.pv.set[10] = paramValue.toInt();
+      else if (paramName == "set11") upv.pv.set[11] = paramValue.toInt();
   }
 
   server.send(200); // Отправляем только статус 200
 
   saveEeprom();
-} */
+}

@@ -38,13 +38,6 @@ String getFloat(float val, uint8_t brackets) {
 void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 300;
-    uint8_t fanSpeed;    // 1 байт ind=36 скорость вращения вентилятора
-    uint8_t pvOut;       // 1 байт ind=37 активные выходы реле
-    uint8_t dsplPW;      // 1 байт ind=38 мощность подаваемая на тены
-    uint8_t errors;      // 1 байт ind=39 ошибки
-    uint8_t currHour;    // 1 байт ind=40 часы
-    uint8_t currMin;     // 1 байт ind=41 минуты
-    uint8_t currSec;     // 1 байт ind=42 секунды
     JsonDocument data;
     data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(chatID);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;

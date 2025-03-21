@@ -202,8 +202,8 @@ void setup(){
       }
     });
     server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
-    // server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
-    // server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
+    server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
+    server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
     server.onNotFound(notFoundHandler);
     
     server.begin();   // Start server

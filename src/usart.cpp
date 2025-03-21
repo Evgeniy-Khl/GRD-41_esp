@@ -35,6 +35,31 @@ void getData(uint8_t command){
     /*if(command != GET_VALUES) */Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
 }
 
+void saveEeprom(){
+    uint8_t dataToSend[2], crc = 0;
+    dataToSend[0] = START_MARKER;
+    dataToSend[1] = SET_EEPROM;
+    Serial.printf("-----------saveEeprom()->%d; %d,%ld sec.\n",SET_EEPROM,seconds,millis()-lastSendTime);
+    for (uint8_t i = 0; i < 2; i++) {
+        Serial.print(dataToSend[i]);
+        Serial.print("; ");
+    }
+    for (uint8_t i = 12; i < 12+INDEX*2; i++) {
+        crc ^= upv.receivedData[i];
+        Serial.print(upv.receivedData[i]);
+        Serial.print("; ");
+    }
+    Serial.print("|| ");
+    Serial.print(crc);
+    Serial.println();
+    
+    mySerial.write(dataToSend,2);
+    mySerial.write(&upv.receivedData[12],INDEX*2);
+    mySerial.write(&crc,1);
+    crc = SET_EEPROM;   // added for parity
+    mySerial.write(&crc,1); // TOTAL 27 byte
+}
+
 // Function for receiving data
 void readData(){
     uint8_t availableBytes = mySerial.available();

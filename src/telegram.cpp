@@ -19,8 +19,7 @@ https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 extern char botToken[], chatID [];
 extern MyTelegramBot bot;
 extern bool shouldSaveConfig;
-uint16_t speedFan[] = {1000,1200,1400,1600,1800,2000,2200,2400};
-
+extern uint16_t speedFan[];
 bool botSetup(){
   return bot.setMyCommands(MAIN_MENU);
 }
@@ -56,7 +55,7 @@ void sendErrMessages(int err){
   // bot.sendMessageWithInlineKeyboard(chatID, errMess, "Markdown", keyboardJson);
 }
 
-void sendStatus(){
+void sendStatus(String chatid){
   String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(chatID) + NEW_STR + NEW_STR;
   welcome += WORD_STATUS;
   if(upv.pv.portFlag & 4) welcome += WORD_WORK;
@@ -72,11 +71,11 @@ void sendStatus(){
   }
   welcome += NEW_STR;
   welcome += WORD_CHAMBER + getFloat((float)upv.pv.t[0]/10,0);
-  welcome += OPEN_BRACKET + String(upv.pv.set[0]) + CLOSE_BRACKET + NEW_STR;
+  welcome += getFloat((float)upv.pv.set[0]/1,1) + NEW_STR;
   welcome += WORD_PRODUCT + getFloat((float)upv.pv.t[1]/10,0);
-  welcome += OPEN_BRACKET + String(upv.pv.set[1]) + CLOSE_BRACKET + NEW_STR;
-  welcome += WORD_SMOKE   + getFloat((float)upv.pv.t[2]/10,0);
-  welcome += WORD_HUMID   + getFloat((float)upv.pv.t[3]/10,0);
+  welcome += getFloat((float)upv.pv.set[1]/1,1) + NEW_STR;
+  welcome += WORD_SMOKE   + getFloat((float)upv.pv.t[2]/10,0) + NEW_STR;
+  welcome += WORD_HUMID   + getFloat((float)upv.pv.t[3]/10,0) + NEW_STR;
   welcome += WORD_FANSPEED;
   if(upv.pv.portFlag & 2) welcome += String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
   else welcome += WORD_STOP;
@@ -91,7 +90,7 @@ void sendStatus(){
   if(upv.pv.errors) welcome += WORD_MISTAKES + String(upv.pv.errors) + NEW_STR;
   else {welcome += WORD_MISTAKES;  welcome += WORD_NONE; welcome += NEW_STR;}
   welcome += GRAVE_ACCENT;
-  bot.sendMessage(chatID, welcome, "Markdown");
+  bot.sendMessage(chatid, welcome, "Markdown");
 }
 
 // Handle what happens when you receive new messages
@@ -100,10 +99,10 @@ void handleNewMessages(int numNewMessages) {
     for (int i=0; i<numNewMessages; i++) {
         // Chat id of the requester
         String chat_id = String(bot.messages[i].chat_id);
-        if (chat_id != chatID){
-          bot.sendMessage(chat_id, "Unauthorized user", "");
-          continue;
-        }
+        // if (chat_id != chatID){
+        //   bot.sendMessage(chat_id, "Unauthorized user", "");
+        //   continue;
+        // }
         
         // Print the received message
         String text = bot.messages[i].text;
@@ -123,7 +122,7 @@ void handleNewMessages(int numNewMessages) {
           String keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
           bot.sendMessageWithInlineKeyboard(chat_id, "Choose from one of the following options", "", keyboardJson);
         }
-        if (text == TXT_STATUS) sendStatus();
+        if (text == TXT_STATUS || text == "/status@Climate25Bot") sendStatus(chat_id);
     }
 }
   

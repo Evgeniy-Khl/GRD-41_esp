@@ -15,7 +15,8 @@
 extern char chatID [];
 extern uint8_t dataLed[5], seconds, mode, quarter;
 extern long lastSendTime;
-extern int tableData[32][4], tmrTelegramOff, speedFan[];
+extern int tableData[32][4], tmrTelegramOff;
+extern uint16_t speedFan[];
 extern ESP8266WebServer server;
 
 void notFoundHandler() {
@@ -51,18 +52,22 @@ void respondsValues() {
     }
     data["temperature0"] = getFloat((float)upv.pv.t[0]/10,0);
     data["temperature1"] = getFloat((float)upv.pv.t[1]/10,0);
-    data["settemp0"] = String(upv.pv.set[0]);
-    data["settemp1"] = String(upv.pv.set[1]);
+    data["settemp0"] = getFloat((float)upv.pv.set[0]/1,1);
+    data["settemp1"] = getFloat((float)upv.pv.set[1]/1,1);
     data["temperature2"] = getFloat((float)upv.pv.t[2]/10,0);
     data["temperature3"] = getFloat((float)upv.pv.t[3]/10,0);
-    if(upv.pv.portFlag & 2) data["fanSpeed"] = String(speedFan[upv.pv.set[VENT]]) + WORD_RPM;
+    uint8_t speed = upv.pv.set[VENT];
+    if(upv.pv.portFlag & 2) data["fanSpeed"] = String(speedFan[speed]) + WORD_RPM;
     else data["fanSpeed"] = WORD_STOP;
+    data["duration"] = String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS;
     if(upv.pv.portFlag & 4){
       char time[12];
       sprintf(time,"%02d:%02d:%02d", upv.pv.currHour, upv.pv.currMin, upv.pv.currSec);
-      data["duration"] = String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS;
       data["time"] = String(time);
       data["power"] = String(upv.pv.dsplPW) + WORD_PCT;
+    } else {
+      data["time"] = WORD_STOP;
+      data["power"] = String(0) + WORD_PCT;
     }
     
     if(upv.pv.errors) data["errors"] = String(upv.pv.errors);

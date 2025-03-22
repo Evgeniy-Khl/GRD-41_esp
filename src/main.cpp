@@ -25,6 +25,7 @@ Upv upv;
 ESP8266WebServer server(80);
 
 const int ledPin = 2;           // Set LED GPIO
+uint16_t speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
@@ -43,6 +44,22 @@ uint16_t begHeapSize, previousHeapSize;
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_4000;
 
+void listDir(const char *dir) {
+  Serial.printf("Directory contents: %s\n", dir);
+  fs::Dir root = LittleFS.openDir("/");
+  while (root.next()) {
+    Serial.print("  ");
+    if (root.isDirectory()) {
+        Serial.print("DIR : ");
+    } else {
+        Serial.print("FILE: ");
+    }
+    Serial.print(root.fileName());
+    Serial.print("  SIZE: ");
+    Serial.println(root.fileSize());
+  }
+}
+
 void setup(){
     Serial.begin(115200);				// Serial port for debugging purposes
     Serial.println();
@@ -56,7 +73,7 @@ void setup(){
     } 
 
     //read configuration from FS json
-    Serial.println("mounting FS...");
+    Serial.println("------mounting FS...------");
 
     if (LittleFS.begin()) {
       Serial.println("mounted file system");
@@ -102,12 +119,12 @@ void setup(){
     // Получение информации о файловой системе
     FSInfo fs_info;
     LittleFS.info(fs_info);
-
     Serial.printf("Total space: %u bytes\n", fs_info.totalBytes);
     Serial.printf("Used space: %u bytes\n", fs_info.usedBytes);
     Serial.printf("Free space: %u bytes\n", fs_info.totalBytes - fs_info.usedBytes);
-    //end read
-
+    // Просмотр содержимого файловой системы
+    listDir("/");
+    Serial.println("======== END FS =========");
     // The extra parameters to be configured (can be either global or just in the setup)
     // After connecting, parameter.getValue() will get you the configured value
     // id/name placeholder/prompt default length
@@ -199,6 +216,20 @@ void setup(){
         }
         server.streamFile(file, "text/html");
         file.close();
+      }
+    });
+    server.on("/setup", HTTP_GET, []() {
+      // Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
+      if (!LittleFS.exists("/index.html")) {
+        Serial.println("index.html not found");
+      } else {
+        File file = LittleFS.open("/setup.html", "r");
+        if (!file) {
+            server.send(404, "text/plain", "File Not Found");
+            return;
+        }
+      server.streamFile(file, "text/html");
+      file.close();
       }
     });
     server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client

@@ -32,7 +32,7 @@ void getData(uint8_t command){
     dataToSend[0] = START_MARKER;
     dataToSend[1] = command;
     mySerial.write(dataToSend,2);
-    /*if(command != GET_VALUES) */Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
+    //if(command != GET_VALUES) Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
 }
 
 void saveEeprom(){
@@ -71,11 +71,11 @@ void readData(){
                     byte receivedChecksum = receiveBuff[RAMPV_SIZE+1]; // The last byte is the checksum
                     byte calculatedChecksum = calculateChecksum(receiveBuff, RAMPV_SIZE+1);
                     long readTime = millis();
-                    Serial.printf("Read VALUES: %dsec. ",seconds);
+                    //Serial.printf("Read VALUES: %dsec. ",seconds);
                     if (receivedChecksum == calculatedChecksum) {
                         memcpy(upv.receivedData, &receiveBuff[1], RAMPV_SIZE);
                         // OutStatus();
-                        Serial.println("Valid VALUES.------------------------");
+                        //Serial.println("Valid VALUES.------------------------");
                         if(tmrTelegramOff <= 0){
                             if(upv.pv.errors && lastError != upv.pv.errors){
                                 sendErrMessages(upv.pv.errors);
@@ -123,11 +123,11 @@ void printData(const char* mess, uint8_t size){
         if(i==size-1) Serial.print("|| ");
     }              
     Serial.println("  size:"+String(size));
-    Serial.printf("model:%u; node:%u; mode:%u; port:0x%02x;",upv.pv.model,upv.pv.node,upv.pv.modeCell,upv.pv.portFlag);
+    Serial.printf("model:%u; node:%u; mode:%u; port:0x%02x; ",upv.pv.model,upv.pv.node,upv.pv.modeCell,upv.pv.portFlag);
     Serial.printf("t0:%3.1f; t1:%3.1f; t2:%3.1f; t3:%3.1f;\n",
         (float)upv.pv.t[0]/10,(float)upv.pv.t[1]/10,(float)upv.pv.t[2]/10,(float)upv.pv.t[3]/10);
-    Serial.printf("S0:%u; S1:%u; S2:%u; S3:%u;",upv.pv.set[0],upv.pv.set[1],upv.pv.set[2],upv.pv.set[3]);
-    Serial.printf("S4:%u; S5:%u; S6:%u; S7:%u;",upv.pv.set[4],upv.pv.set[5],upv.pv.set[6],upv.pv.set[7]);
+    Serial.printf("S0:%u; S1:%u; S2:%u; S3:%u; ",upv.pv.set[0],upv.pv.set[1],upv.pv.set[2],upv.pv.set[3]);
+    Serial.printf("S4:%u; S5:%u; S6:%u; S7:%u; ",upv.pv.set[4],upv.pv.set[5],upv.pv.set[6],upv.pv.set[7]);
     Serial.printf("S8:%u; S9:%u; S10:%u; S11:%u;\n",upv.pv.set[8],upv.pv.set[9],upv.pv.set[10],upv.pv.set[11]);
     
 }

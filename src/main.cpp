@@ -168,7 +168,12 @@ void setup(){
 
     //if you get here you have connected to the WiFi
     Serial.print("connected...yeey   local ip:");
-    Serial.println(WiFi.localIP());	// Print ESP32 Local IP Address
+    IPAddress ip = WiFi.localIP();
+    Serial.println(ip);	// Print ESP32 Local IP Address
+    transmitBuff[2] = ip[0]; // Первый байт IP-адреса
+    transmitBuff[3] = ip[1]; // Второй байт IP-адреса
+    transmitBuff[4] = ip[2]; // Третий байт IP-адреса
+    transmitBuff[5] = ip[3]; // Четвертый байт IP-адреса
 
     //read updated parameters
     strcpy(botToken, custom_botToken.getValue());

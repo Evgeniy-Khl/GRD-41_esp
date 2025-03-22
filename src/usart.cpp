@@ -8,7 +8,7 @@ extern EspSoftwareSerial::UART mySerial;
 extern MyTelegramBot bot;
 extern long lastSendTime, allTime;
 extern uint8_t mode, errors, lastError, seconds, quarter, dataLed[], receiveBuff[], transmitBuff[];
-extern int tableData[32][4], tmrTelegramOff;
+extern int tmrTelegramOff;
 extern bool enabledListen;
 extern char chatID [];
 
@@ -28,10 +28,10 @@ byte calculateChecksum(byte* data, int length) {
 }
 
 void getData(uint8_t command){
-    uint8_t dataToSend[2];
-    dataToSend[0] = START_MARKER;
-    dataToSend[1] = command;
-    mySerial.write(dataToSend,2);
+    transmitBuff[0] = START_MARKER;
+    transmitBuff[1] = command;
+    // transmitBuff[2] - transmitBuff[5] -> IP-адрес
+    mySerial.write(transmitBuff,6);
     //if(command != GET_VALUES) Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
 }
 
@@ -132,35 +132,8 @@ void printData(const char* mess, uint8_t size){
     
 }
 
-void fillTable(uint8_t quarter){
-    uint8_t row=0, item=1 ; // receiveBuff[0]==221
-    switch (quarter) {
-        case GET_PROG2: row = 8;  break;
-        case GET_PROG3: row = 16;  break;
-        case GET_PROG4: row = 24;  break;
-    }
-    // преобразовать 64 байт в 8 строк по 4 int
-    for(uint8_t i = row; i < row+8; i++){
-        for (uint8_t j = 0; j < 4; j++){
-            if(j==0){
-                // Преобразуйте 2 последовательных элемента uint8_t в одно значение int16_t
-                tableData[i][j] = (int16_t)((receiveBuff[item + 1] << 8) | receiveBuff[item]);
-                item += 2;
-            } else if(j==1) {
-                tableData[i][j] = receiveBuff[item++] * 2;
-            } else {
-                tableData[i][j] = receiveBuff[item++];
-            }
 
-            Serial.print(tableData[i][j]); Serial.print("; ");
-        }
-        Serial.println();
-        item += 3;
-    }
-    Serial.println();
-}
-
-void fillReceiveBuff(uint8_t quarter) {
+/* void fillReceiveBuff(uint8_t quarter) {
     uint8_t row=0, item = 0;
     switch (quarter) {
         case SET_PROG2: row = 8;  break;
@@ -192,4 +165,4 @@ void fillReceiveBuff(uint8_t quarter) {
     Serial.println("-----------------------------------------------------------------------------------------");
     Serial.printf("fillReceiveBuff() Quarter=%d; item=%d;   %d,%ld\n",quarter,item,seconds,millis()-lastSendTime);
     saveProgram(quarter);
-}
+} */

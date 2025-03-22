@@ -56,7 +56,7 @@ void sendErrMessages(int err){
 }
 
 void sendStatus(String chatid){
-  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(chatID) + NEW_STR + NEW_STR;
+  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
   welcome += WORD_STATUS;
   if(upv.pv.portFlag & 4) welcome += WORD_WORK;
   else welcome += WORD_STOP;

@@ -40,7 +40,7 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 300;
     JsonDocument data;
-    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(chatID);
+    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(upv.pv.node);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
     else data["status"] = WORD_STOP;
     switch (upv.pv.modeCell){

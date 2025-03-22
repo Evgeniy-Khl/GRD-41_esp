@@ -95,7 +95,8 @@ void respondsEeprom(){
         doc["set9"] = upv.pv.set[9];
         doc["set10"] = upv.pv.set[10];
         doc["set11"] = upv.pv.set[11];
-
+        doc["identif"] = upv.pv.node;
+        
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         Serial.printf("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
         Serial.println(jsonResponse);

@@ -37,7 +37,7 @@ MyTelegramBot bot(botToken, client);
 bool shouldSaveConfig = false;
 bool enabledListen = false;
 
-uint8_t receiveBuff[70], transmitBuff[70], dataLed[5] = {0}; // Массив для приема / передачи по UART
+uint8_t receiveBuff[70], transmitBuff[70]; // Массив для приема / передачи по UART
 uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, quarter = GET_PROG1, errors, lastError, seconds = 0;
 int tableData[32][4] = {0}, tmrTelegramOff = 30;
 uint16_t begHeapSize, previousHeapSize;

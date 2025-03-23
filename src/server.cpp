@@ -13,7 +13,7 @@
 
 
 extern char chatID [];
-extern uint8_t dataLed[5], seconds, mode, quarter;
+extern uint8_t seconds, mode, quarter;
 extern long lastSendTime;
 extern int tableData[32][4], tmrTelegramOff;
 extern uint16_t speedFan[];
@@ -128,8 +128,8 @@ void acceptEeprom() {
       else if (paramName == "set9") upv.pv.set[9] = paramValue.toInt();
       else if (paramName == "set10") upv.pv.set[10] = paramValue.toInt();
       else if (paramName == "set11") upv.pv.set[11] = paramValue.toInt();
+      else if (paramName == "identif") upv.pv.node = paramValue.toInt();
   }
-
   server.send(200); // Отправляем только статус 200
 
   saveEeprom();

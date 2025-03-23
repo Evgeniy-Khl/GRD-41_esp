@@ -7,17 +7,10 @@
 extern EspSoftwareSerial::UART mySerial;
 extern MyTelegramBot bot;
 extern long lastSendTime, allTime;
-extern uint8_t mode, errors, lastError, seconds, quarter, dataLed[], receiveBuff[], transmitBuff[];
+extern uint8_t mode, errors, lastError, seconds, quarter, receiveBuff[], transmitBuff[];
 extern int tmrTelegramOff;
 extern bool enabledListen;
 extern char chatID [];
-
-void OutStatus(){
-    for(uint8_t i = 0; i < 5; i++){
-      uint8_t numBit = 1 << i;
-      dataLed[i] = upv.pv.pvOut & numBit;
-    }
-}
 
 byte calculateChecksum(byte* data, int length) {
     byte checksum = 0;
@@ -50,7 +43,7 @@ void saveEeprom(){
         Serial.print("; ");
     }
     Serial.print("|| ");
-    Serial.print(crc);
+    Serial.println(crc);
     Serial.println();
     
     mySerial.write(dataToSend,2);
@@ -74,7 +67,6 @@ void readData(){
                     //Serial.printf("Read VALUES: %dsec. ",seconds);
                     if (receivedChecksum == calculatedChecksum) {
                         memcpy(upv.receivedData, &receiveBuff[1], RAMPV_SIZE);
-                        // OutStatus();
                         //Serial.println("Valid VALUES.------------------------");
                         if(tmrTelegramOff <= 0){
                             if(upv.pv.errors && lastError != upv.pv.errors){
@@ -109,8 +101,9 @@ void readData(){
                 }
             }
             break;
+        case SAVEEEPROM:  break;
         default: 
-            Serial.printf("DEFAULT !!!: %d,%ld\n",seconds,millis()-lastSendTime);
+            Serial.printf("Default! mode=%d; time: %d,%ld\n", mode,seconds,millis()-lastSendTime);
             break;
     }
 }

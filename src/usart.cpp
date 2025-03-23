@@ -7,7 +7,7 @@
 extern EspSoftwareSerial::UART mySerial;
 extern MyTelegramBot bot;
 extern long lastSendTime, allTime;
-extern uint8_t mode, errors, lastError, seconds, quarter, receiveBuff[], transmitBuff[];
+extern uint8_t mode, errors, lastError, seconds, receiveBuff[], transmitBuff[];
 extern int tmrTelegramOff;
 extern bool enabledListen;
 extern char chatID [];
@@ -125,37 +125,3 @@ void printData(const char* mess, uint8_t size){
     
 }
 
-
-/* void fillReceiveBuff(uint8_t quarter) {
-    uint8_t row=0, item = 0;
-    switch (quarter) {
-        case SET_PROG2: row = 8;  break;
-        case SET_PROG3: row = 16;  break;
-        case SET_PROG4: row = 24;  break;
-    }
-    // Заполнение transmitData из tableData
-    for (uint8_t i = row; i < row+8; i++) {
-        for (uint8_t j = 0; j < 7; j++) {
-            if (j == 0) {
-                // Преобразуем int16_t обратно в 2 последовательных uint8_t J==0; item==0,1
-                transmitBuff[item] = (uint8_t)(tableData[i][j] & 0xFF); // младший байт
-                transmitBuff[item + 1] = (uint8_t)((tableData[i][j] >> 8) & 0xFF); // старший байт
-                item += 2;
-            } else if (j == 1) {
-                // Для второго элемента, делаем деление на 2 J==1; item==2
-                transmitBuff[item] = tableData[i][j] / 2;
-                item++;
-            } else if (j > 3) {
-                // Элементы j==4,5,6 в ableData отсутствуют item==5,6,7
-                transmitBuff[item] = 255;
-                item++;
-            } else {
-                transmitBuff[item] = tableData[i][j];  //J==2,3; item==3,4 копируем на прямую
-                item++;
-            }
-        }
-    }
-    Serial.println("-----------------------------------------------------------------------------------------");
-    Serial.printf("fillReceiveBuff() Quarter=%d; item=%d;   %d,%ld\n",quarter,item,seconds,millis()-lastSendTime);
-    saveProgram(quarter);
-} */

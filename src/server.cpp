@@ -13,7 +13,7 @@
 
 
 extern char chatID [];
-extern uint8_t seconds, mode, quarter;
+extern uint8_t seconds, mode;
 extern long lastSendTime;
 extern int tableData[32][4], tmrTelegramOff;
 extern uint16_t speedFan[];

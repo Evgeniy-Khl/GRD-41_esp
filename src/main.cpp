@@ -25,7 +25,6 @@ Upv upv;
 ESP8266WebServer server(80);
 
 const int ledPin = 2;           // Set LED GPIO
-uint16_t speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
@@ -35,12 +34,11 @@ MyTelegramBot bot(botToken, client);
 
 //flag for saving data
 bool shouldSaveConfig = false;
-bool enabledListen = false;
-
-uint8_t receiveBuff[70], transmitBuff[70]; // Массив для приема / передачи по UART
+// Массив для приема / передачи по UART
+uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[4]; 
 uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, seconds = 0;
-int tableData[32][4] = {0}, tmrTelegramOff = 30;
-uint16_t begHeapSize, previousHeapSize;
+int8_t tmrTelegramOff = 30;
+uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_4000;
 
@@ -67,7 +65,7 @@ void setup(){
       configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
       client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
     #endif
-    mySerial.begin(4800, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false, 70);// bufCapacity = 64 -> 70
+    mySerial.begin(4800, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false, BUF_CAPACITY);// bufCapacity = 64 -> 70
     if (!mySerial) {
       Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
     } 
@@ -170,10 +168,10 @@ void setup(){
     Serial.print("connected...yeey   local ip:");
     IPAddress ip = WiFi.localIP();
     Serial.println(ip);	// Print ESP32 Local IP Address
-    transmitBuff[2] = ip[0]; // Первый байт IP-адреса
-    transmitBuff[3] = ip[1]; // Второй байт IP-адреса
-    transmitBuff[4] = ip[2]; // Третий байт IP-адреса
-    transmitBuff[5] = ip[3]; // Четвертый байт IP-адреса
+    myIp[0] = ip[0]; // Первый байт IP-адреса
+    myIp[1] = ip[1]; // Второй байт IP-адреса
+    myIp[2] = ip[2]; // Третий байт IP-адреса
+    myIp[3] = ip[3]; // Четвертый байт IP-адреса
 
     //read updated parameters
     strcpy(botToken, custom_botToken.getValue());
@@ -210,7 +208,7 @@ void setup(){
     pinMode(ledPin, OUTPUT);
 
     server.on("/", HTTP_GET, []() {
-      mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 300;
+      mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 120;
       if (!LittleFS.exists("/index.html")) {
         Serial.println("index.html not found");
       } else {

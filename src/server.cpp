@@ -15,7 +15,7 @@
 extern char chatID [];
 extern uint8_t seconds, mode;
 extern long lastSendTime;
-extern int tableData[32][4], tmrTelegramOff;
+extern int8_t tmrTelegramOff;
 extern uint16_t speedFan[];
 extern ESP8266WebServer server;
 
@@ -38,7 +38,7 @@ String getFloat(float val, uint8_t brackets) {
 
 void respondsValues() {
     String string, jsonResponse;
-    tmrTelegramOff = 300;
+    tmrTelegramOff = 120;
     JsonDocument data;
     data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(upv.pv.node);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;

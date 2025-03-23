@@ -9,6 +9,7 @@
 #define MYPORT_TX 12
 #define MYPORT_RX 13
 #define RAMPV_SIZE   46
+#define BUF_CAPACITY 64
 
 enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};

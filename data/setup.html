@@ -154,7 +154,7 @@
                 .then(response => {
                     closePopup(); // Скрыть сообщение загрузки
                     if (!response.ok) {
-                        throw new Error('Сетевая ошибка: ' + response.status);
+                        throw new Error('Сетевая ошибка!');
                     }
                     return response.json();
                 })
@@ -185,7 +185,7 @@
                         document.getElementById('set9').value = (data.set9 / 10).toFixed(1);
                         document.getElementById('set10').value = (data.set10 / 10).toFixed(1);
                         document.getElementById('set11').value = data.set11;
-                        document.getElementById('identif').value = data.identif;
+                        document.getElementById('status').value = data.status;
                     }
                 })
                 .catch(error => {
@@ -309,8 +309,11 @@
         <option value="2">Сирена відключена</option>
     </select>
 	
-	<label for="identif">Номер приладу</label>
-    <input type="number" name="identif" id="identif" min="1" max="250" required>
+	<label for="status">Стан приладу:</label>
+	<select name="status" id="status">
+        <option value="0">ЗУПИНЕН</option>
+        <option value="1">В РОБОТІ</option>
+    </select>
 
     <button type="submit" class="button1">ЗБЕРІГТИ</button>
 </form>

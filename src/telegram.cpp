@@ -16,9 +16,8 @@ https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 #include "strings_ua.h"
 #endif
 
-extern char botToken[], chatID [];
+extern char botToken[], chatID [], nameID [];
 extern MyTelegramBot bot;
-extern bool shouldSaveConfig;
 extern uint16_t speedFan[];
 bool botSetup(){
   return bot.setMyCommands(MAIN_MENU);
@@ -34,7 +33,7 @@ bool botSetup(){
 * errors = 0x80   // ПЕРЕГРЕВ СИМИСТОРА ! [ПРГ] 
 *******************************************************************/
 void sendErrMessages(int err){
-  String errMess = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
+  String errMess = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(nameID) + NEW_STR + NEW_STR;
   if(upv.pv.errors&1) errMess += SENSOR_ERROR_1;
   else {
     if(upv.pv.errors&4){
@@ -56,7 +55,7 @@ void sendErrMessages(int err){
 }
 
 void sendStatus(String chatid){
-  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(upv.pv.node) + NEW_STR + NEW_STR;
+  String welcome = WORD_TITLE + String(upv.pv.model) + ID_TITLE + String(nameID) + NEW_STR + NEW_STR;
   welcome += WORD_STATUS;
   if(upv.pv.portFlag & 4) welcome += WORD_WORK;
   else welcome += WORD_STOP;
@@ -124,10 +123,4 @@ void handleNewMessages(int numNewMessages) {
         }
         if (text == TXT_STATUS || text == "/status@Climate25Bot") sendStatus(chat_id);
     }
-}
-  
-//callback notifying us of the need to save config
-void saveConfigCallback() {
-    Serial.println("Should save config");
-    shouldSaveConfig = true;
 }

@@ -12,8 +12,8 @@
 #endif
 
 
-extern char chatID [];
-extern uint8_t seconds, mode;
+extern char chatID [], nameID [];
+extern uint8_t seconds, mode, status;
 extern long lastSendTime;
 extern int8_t tmrTelegramOff;
 extern uint16_t speedFan[];
@@ -40,7 +40,7 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 120;
     JsonDocument data;
-    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:" + String(upv.pv.node);
+    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:&nbsp;" + String(nameID);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
     else data["status"] = WORD_STOP;
     switch (upv.pv.modeCell){
@@ -80,7 +80,7 @@ void respondsValues() {
     // Serial.printf("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
-void respondsEeprom(){
+void respondsSet(){
     String jsonResponse;
     JsonDocument doc;
         doc["set0"] = upv.pv.set[0];
@@ -95,7 +95,7 @@ void respondsEeprom(){
         doc["set9"] = upv.pv.set[9];
         doc["set10"] = upv.pv.set[10];
         doc["set11"] = upv.pv.set[11];
-        doc["identif"] = upv.pv.node;
+        doc["status"] = upv.pv.portFlag & 4;
         
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         Serial.printf("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
@@ -105,9 +105,9 @@ void respondsEeprom(){
         // Serial.printf("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
-void acceptEeprom() {
+void acceptSet() {
   // Логирование всех параметров
-  Serial.printf("The SERVER has accepted EEPROM: %d, %ld\n", seconds, millis() - lastSendTime);
+  Serial.printf("The SERVER has accepted EEPROM seconds: %d, %ld\n", seconds, millis() - lastSendTime);
   
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
@@ -128,9 +128,10 @@ void acceptEeprom() {
       else if (paramName == "set9") upv.pv.set[9] = paramValue.toInt();
       else if (paramName == "set10") upv.pv.set[10] = paramValue.toInt();
       else if (paramName == "set11") upv.pv.set[11] = paramValue.toInt();
-      else if (paramName == "identif") upv.pv.node = paramValue.toInt();
+      else if (paramName == "status") status = paramValue.toInt();
   }
   server.send(200); // Отправляем только статус 200
 
-  saveEeprom();
+  saveSet(status);
+  // if (status) getData(SET_ON); else getData(SET_OFF);
 }

@@ -8,8 +8,8 @@
 // Функция для обработки параметров
 void notFoundHandler();
 void respondsValues();
-void respondsEeprom();
-void acceptEeprom();
+void respondsSet();
+void acceptSet();
 String getFloat(float val, uint8_t brackets);
 byte calculateChecksum(byte* data, int length);
 void OutStatus();

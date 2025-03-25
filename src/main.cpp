@@ -3,6 +3,8 @@
   https://randomnerdtutorials.com/esp32-esp8266-relay-web-server/
   https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
   https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
+  RAM:   [====      ]  44.2% (used 36176 bytes from 81920 bytes)
+  Flash: [=====     ]  51.6% (used 539267 bytes from 1044464 bytes)
 */
 
 // Import required libraries
@@ -29,18 +31,25 @@ const int ledPin = 2;           // Set LED GPIO
 //define your default values here, if there are different values in config.json, they are overwritten.
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+char nameID [15] = "";
 WiFiClientSecure client;
 MyTelegramBot bot(botToken, client);
 
 //flag for saving data
 bool shouldSaveConfig = false;
 // Массив для приема / передачи по UART
-uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[4]; 
-uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, seconds = 0;
+uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
+uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
 int8_t tmrTelegramOff = 30;
 uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_4000;
+
+//callback notifying us of the need to save config
+void saveConfigCallback() {
+  Serial.println("Should save config");
+  shouldSaveConfig = true;
+}
 
 void listDir(const char *dir) {
   Serial.printf("Directory contents: %s\n", dir);
@@ -59,7 +68,7 @@ void listDir(const char *dir) {
 }
 
 void setup(){
-    Serial.begin(115200);				// Serial port for debugging purposes
+    Serial.begin(115200);				// Serial port for debugging purposes ?
     Serial.println();
     #ifdef ESP8266
       configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
@@ -94,6 +103,7 @@ void setup(){
             Serial.println("\nparsed json");
             strcpy(botToken, json["botToken"]);
             strcpy(chatID, json["chatID"]);
+            strcpy(nameID, json["nameID"]);
           } else {
             Serial.println("failed to load json config");
           }
@@ -128,8 +138,9 @@ void setup(){
     // id/name placeholder/prompt default length
     WiFiManagerParameter custom_botToken("botToken", "BOT token", botToken, 50);
     WiFiManagerParameter custom_chatID("chatID", "Chat ID", chatID, 11);
+    WiFiManagerParameter custom_nameID("nameID", "Name ID", nameID, 11);
 
-    //WiFiManager
+    //WiFiManager https://github.com/tzapu/WiFiManager
     //Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wifiManager;
 
@@ -139,9 +150,10 @@ void setup(){
     //add all your parameters here
     wifiManager.addParameter(&custom_botToken);
     wifiManager.addParameter(&custom_chatID);
+    wifiManager.addParameter(&custom_nameID);
 
     //-------------------------------------------------------------------------------------reset settings - for testing--------------
-    // wifiManager.resetSettings();
+    wifiManager.resetSettings();
     //-----------------------------------------------------
     //set minimu quality of signal so it ignores AP's under that quality
     //defaults to 8%
@@ -176,9 +188,13 @@ void setup(){
     //read updated parameters
     strcpy(botToken, custom_botToken.getValue());
     strcpy(chatID, custom_chatID.getValue());
+    strcpy(nameID, custom_nameID.getValue());
+    myIp[4] = strlen(botToken); // For C-style strings (null-terminated character arrays):
+    myIp[5] = strlen(chatID);   // For C-style strings (null-terminated character arrays):
     Serial.println("----The values in the file are ----");
     Serial.println("botToken:" + String(botToken));
     Serial.println("chatID:" + String(chatID));
+    Serial.println("nameID:" + String(nameID));
     Serial.println();
     // Проверяем, что botToken не пустая
     if (strlen(botToken) > 0) {
@@ -193,6 +209,7 @@ void setup(){
       JsonDocument json;
       json["botToken"] = botToken;
       json["chatID"] = chatID;
+      json["nameID"] = nameID;
 
       File configFile = LittleFS.open("/config.json", "w");
       if (!configFile) {
@@ -236,8 +253,8 @@ void setup(){
       }
     });
     server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
-    server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
-    server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
+    server.on("/geteeprom", HTTP_GET, respondsSet);      // the server responds the completed setup.html to the client
+    server.on("/seteeprom", HTTP_POST, acceptSet);       // the server accepts the edited setup.html from the client
     server.onNotFound(notFoundHandler);
     
     server.begin();   // Start server
@@ -252,12 +269,12 @@ void loop(){
   long now = millis();
   if (now - lastSendTime > interval) {
     // if(earlyMode != mode){
-      Serial.printf("mode:%d; seconds:%d; All time:%ld; availableBytes:%d\n", mode, seconds, allTime, mySerial.available());
+      // Serial.printf("mode:%d; seconds:%d; All time:%ld; availableBytes:%d\n", mode, seconds, allTime, mySerial.available());
     //   earlyMode = mode;
     // }
     lastSendTime = now;
-    Serial.print("Free heap size: ");
-    Serial.println(system_get_free_heap_size());
+    // Serial.print("Free heap size: ");
+    // Serial.println(system_get_free_heap_size());
 
     seconds += interval/1000;
     allTime += interval/1000;
@@ -267,7 +284,7 @@ void loop(){
     //   previousHeapSize = lostHeapSize;
     //   Serial.printf("Lost heap size: %d bytes\n", lostHeapSize);
     // }
-    getData(GET_VALUES);
+    if(mode == 0) getData(GET_VALUES);
   } else {
     readData();
   }

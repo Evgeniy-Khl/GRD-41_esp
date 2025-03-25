@@ -7,7 +7,7 @@
 extern EspSoftwareSerial::UART mySerial;
 extern MyTelegramBot bot;
 extern long lastSendTime, allTime;
-extern uint8_t mode, errors, lastError, seconds, receiveBuff[], transmitBuff[], myIp[4];
+extern uint8_t mode, errors, lastError, seconds, receiveBuff[], transmitBuff[], myIp[6];
 extern int8_t tmrTelegramOff;
 
 byte calculateChecksum(byte* data, int length) {
@@ -24,16 +24,16 @@ void getData(uint8_t command){
     dataToSend[1] = command;
     // transmitBuff[2] - transmitBuff[5] -> IP-адрес
     mySerial.write(dataToSend,2);
-    mySerial.write(myIp,4);
-    mySerial.write(transmitBuff,22);// TOTAL 28 byte
+    mySerial.write(myIp,6);
+    mySerial.write(transmitBuff,20);// TOTAL 28 byte
     //if(command != GET_VALUES) Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
 }
 
-void saveEeprom(){
+void saveSet(uint8_t status){
     uint8_t dataToSend[2], crc = 0;
     dataToSend[0] = START_MARKER;
     dataToSend[1] = SET_EEPROM;
-    Serial.printf("-----------saveEeprom()->%d; %d,%ld sec.\n",SET_EEPROM,seconds,millis()-lastSendTime);
+    Serial.printf("-----------saveEeprom()->%d; seconds: %d,%ld sec.\n",SET_EEPROM,seconds,millis()-lastSendTime);
     for (uint8_t i = 0; i < 2; i++) {
         Serial.print(dataToSend[i]);
         Serial.print("; ");
@@ -45,15 +45,15 @@ void saveEeprom(){
     }
     Serial.print("|| ");
     Serial.println(crc);
-    Serial.println();
     Serial.printf("S0:%u; S1:%u; S2:%u; S3:%u; ",upv.pv.set[0],upv.pv.set[1],upv.pv.set[2],upv.pv.set[3]);
     Serial.printf("S4:%u; S5:%u; S6:%u; S7:%u; ",upv.pv.set[4],upv.pv.set[5],upv.pv.set[6],upv.pv.set[7]);
     Serial.printf("S8:%u; S9:%u; S10:%u; S11:%u;\n",upv.pv.set[8],upv.pv.set[9],upv.pv.set[10],upv.pv.set[11]);
+    Serial.println("-----------mySerial.write()");
     
     mySerial.write(dataToSend,2);
     mySerial.write(&upv.receivedData[12],INDEX*2);// 24 byte
     mySerial.write(&crc,1);
-    crc = SET_EEPROM;   // added for parity
+    crc = status;           // added status
     mySerial.write(&crc,1); // TOTAL 28 byte
 }
 
@@ -88,7 +88,7 @@ void readData(){
                             }
                             //---------------
                         } else {
-                            Serial.println("  Tmr OFF: "+ String(tmrTelegramOff));
+                            // Serial.println("  Tmr OFF: "+ String(tmrTelegramOff));
                         }
                         // printData("Valid VALUES.",availableBytes);
                     } else {

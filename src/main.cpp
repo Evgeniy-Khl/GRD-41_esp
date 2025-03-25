@@ -153,7 +153,7 @@ void setup(){
     wifiManager.addParameter(&custom_nameID);
 
     //-------------------------------------------------------------------------------------reset settings - for testing--------------
-    wifiManager.resetSettings();
+    // wifiManager.resetSettings();
     //-----------------------------------------------------
     //set minimu quality of signal so it ignores AP's under that quality
     //defaults to 8%

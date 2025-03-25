@@ -95,7 +95,7 @@ void respondsSet(){
         doc["set9"] = upv.pv.set[9];
         doc["set10"] = upv.pv.set[10];
         doc["set11"] = upv.pv.set[11];
-        doc["status"] = upv.pv.portFlag & 4;
+        doc["status"] = (upv.pv.portFlag & 4)/4;
         
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         Serial.printf("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
@@ -131,7 +131,7 @@ void acceptSet() {
       else if (paramName == "status") status = paramValue.toInt();
   }
   server.send(200); // Отправляем только статус 200
-
+  if (status == 1) upv.pv.portFlag |= 4; else if(status == 0) upv.pv.portFlag &= 0xFB;
   saveSet(status);
   // if (status) getData(SET_ON); else getData(SET_OFF);
 }

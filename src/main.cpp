@@ -3,8 +3,8 @@
   https://randomnerdtutorials.com/esp32-esp8266-relay-web-server/
   https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
   https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
-  RAM:   [====      ]  44.2% (used 36176 bytes from 81920 bytes)
-  Flash: [=====     ]  51.6% (used 539267 bytes from 1044464 bytes)
+  RAM:   [====      ]  44.3% (used 36252 bytes from 81920 bytes)
+  Flash: [=====     ]  51.7% (used 539695 bytes from 1044464 bytes)
 */
 
 // Import required libraries

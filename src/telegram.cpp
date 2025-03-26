@@ -94,7 +94,7 @@ void sendStatus(String chatid){
 
 // Handle what happens when you receive new messages
 void handleNewMessages(int numNewMessages) {
-    Serial.println("handleNewMessages: "+String(numNewMessages));
+    Serial.println("handleNewMessages(): "+String(numNewMessages));
     for (int i=0; i<numNewMessages; i++) {
         // Chat id of the requester
         String chat_id = String(bot.messages[i].chat_id);
@@ -107,20 +107,20 @@ void handleNewMessages(int numNewMessages) {
         String text = bot.messages[i].text;
         Serial.println("received message: " + text);
     
-        String from_name = bot.messages[i].from_name;
+        // String from_name = bot.messages[i].from_name;
     
-        if (text == TXT_START) {
-          String welcome = "Welcome, " + from_name + ".\n";
-          welcome += "Use the following commands to control your outputs.\n\n";
-          welcome += "/led_on to turn GPIO ON \n";
-          welcome += "/led_off to turn GPIO OFF \n";
-          welcome += "/state to request current GPIO state \n";
-          bot.sendMessage(chat_id, welcome, "");
-        }
-        if (text == TXT_OPTIONS){
-          String keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
-          bot.sendMessageWithInlineKeyboard(chat_id, "Choose from one of the following options", "", keyboardJson);
-        }
-        if (text == TXT_STATUS || text == "/status@Climate25Bot") sendStatus(chat_id);
+        // if (text == TXT_START) {
+        //   String welcome = "Welcome, " + from_name + ".\n";
+        //   welcome += "Use the following commands to control your outputs.\n\n";
+        //   welcome += "/led_on to turn GPIO ON \n";
+        //   welcome += "/led_off to turn GPIO OFF \n";
+        //   welcome += "/state to request current GPIO state \n";
+        //   bot.sendMessage(chat_id, welcome, "");
+        // }
+        // if (text == TXT_OPTIONS){
+        //   String keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
+        //   bot.sendMessageWithInlineKeyboard(chat_id, "Choose from one of the following options", "", keyboardJson);
+        // }
+        if (text == TXT_STATUS) sendStatus(chat_id);
     }
 }

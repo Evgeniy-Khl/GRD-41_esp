@@ -1,6 +1,7 @@
 // server.cpp
 #include <ArduinoJson.h>
 #include "main.h"
+#include "telegram.h"
 // Определите язык
 // #define LANGUAGE_EN  // Для английского
 #define LANGUAGE_UA  // Для русского
@@ -11,8 +12,7 @@
 #include "strings_ua.h"
 #endif
 
-
-extern char chatID [], nameID [];
+extern char chatID[], nameID [], myIp[6];
 extern uint8_t seconds, mode, status;
 extern long lastSendTime;
 extern int8_t tmrTelegramOff;
@@ -40,7 +40,7 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 120;
     JsonDocument data;
-    data["model"] = "GRD Max4." + String(upv.pv.model) + "&nbsp;&nbsp;&nbsp;ID:&nbsp;" + String(nameID);
+    data["model"] = F("GRD Max4.") + String(upv.pv.model) + F("&nbsp;&nbsp;&nbsp;ID:&nbsp;") + String(nameID);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
     else data["status"] = WORD_STOP;
     switch (upv.pv.modeCell){
@@ -133,5 +133,7 @@ void acceptSet() {
   server.send(200); // Отправляем только статус 200
   if (status == 1) upv.pv.portFlag |= 4; else if(status == 0) upv.pv.portFlag &= 0xFB;
   saveSet(status);
-  // if (status) getData(SET_ON); else getData(SET_OFF);
+  // if (myIp[4] > 40 && myIp[5] > 9) sendStatus(chatID);
+  // myIp[4] -> strlen(botToken)
+  // myIp[5] -> strlen(chatID)
 }

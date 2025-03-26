@@ -7,7 +7,8 @@
 extern EspSoftwareSerial::UART mySerial;
 extern MyTelegramBot bot;
 extern long lastSendTime, allTime;
-extern uint8_t mode, errors, lastError, seconds, receiveBuff[], transmitBuff[], myIp[6];
+extern char chatID [];
+extern uint8_t mode, errors, lastError, seconds, status, receiveBuff[], transmitBuff[], myIp[6];
 extern int8_t tmrTelegramOff;
 
 byte calculateChecksum(byte* data, int length) {
@@ -29,7 +30,7 @@ void getData(uint8_t command){
     //if(command != GET_VALUES) Serial.printf("---getData()->MODE=%d; COMMAND=%d; secons:%d;  All:%ld sec.\n",mode,command,seconds,allTime);
 }
 
-void saveSet(uint8_t status){
+void saveSet(uint8_t stat){
     uint8_t dataToSend[2], crc = 0;
     dataToSend[0] = START_MARKER;
     dataToSend[1] = SET_EEPROM;
@@ -53,7 +54,7 @@ void saveSet(uint8_t status){
     mySerial.write(dataToSend,2);
     mySerial.write(&upv.receivedData[12],INDEX*2);// 24 byte
     mySerial.write(&crc,1);
-    crc = status;           // added status
+    crc = stat;             // added status
     mySerial.write(&crc,1); // TOTAL 28 byte
 }
 
@@ -76,6 +77,9 @@ void readData(){
                             if(upv.pv.errors && lastError != upv.pv.errors){
                                 sendErrMessages(upv.pv.errors);
                                 lastError = upv.pv.errors;      // exclude duplicate message
+                            } else if (status != upv.pv.portFlag&4){
+                                status = upv.pv.portFlag&4;
+                                sendStatus(chatID);
                             } else {
                                 int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
                                 while(numNewMessages) {
@@ -84,7 +88,7 @@ void readData(){
                                     handleNewMessages(numNewMessages);
                                     numNewMessages = bot.getUpdates(bot.last_message_received + 1);
                                 }
-                                Serial.printf("         Messages =%d;  %ld msek.------------------\n",numNewMessages,millis()-readTime);
+                                Serial.printf("==============Messages =%d;  %ld msek.=============\n",numNewMessages,millis()-readTime);
                             }
                             //---------------
                         } else {

@@ -1,3 +1,12 @@
+/*
+  https://randomnerdtutorials.com/esp8266-web-server-spiffs-nodemcu/
+  https://randomnerdtutorials.com/esp32-esp8266-relay-web-server/
+  https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
+  https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
+  RAM:   [====      ]  44.3% (used 36252 bytes from 81920 bytes)
+  Flash: [=====     ]  51.7% (used 539695 bytes from 1044464 bytes)
+*/
+
 #ifndef __MAIN_H
 #define __MAIN_H
 
@@ -8,14 +17,47 @@
 #include <LittleFS.h>
 #include "server.h"
 #include "usart.h"
+#include "procedure.h"
+
+#define DEBUG
+
+#ifdef DEBUG
+  // Вариативные макросы, принимающие любое количество аргументов
+  #define DEBUG_SPRINTF(...)  sprintf(__VA_ARGS__)
+  #define MYDEBUG_PRINT(...)   Serial.print(__VA_ARGS__)
+  #define MYDEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+  #define DEBUG_PRINTF(...) Serial.printf(__VA_ARGS__)
+#else
+  // "Пустышки" остаются такими же
+  #define DEBUG_SPRINTF(...)
+  #define MYDEBUG_PRINT(...)
+  #define MYDEBUG_PRINTLN(...)
+#endif
+// --- Конец блока макросов ---
 
 #define MYPORT_TX 12
 #define MYPORT_RX 13
 #define RAMPV_SIZE   46
 #define BUF_CAPACITY 64
 
+const int ledPin = 2;           // Set LED GPIO
+
+char botToken[50] = "";  // your Bot Token (Get from Botfather);
+char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+char nameID [15] = "";
+
 enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};
+
+//flag for saving data
+bool shouldSaveConfig = false;
+// Массив для приема / передачи по UART
+uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
+uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
+int8_t tmrTelegramOff = 30;
+uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
+long lastSendTime = 0, allTime = 0; 
+Interval interval = INTERVAL_4000;
 
 struct Rampv {
     uint8_t model;       // 1 байт ind=0  модель прибора

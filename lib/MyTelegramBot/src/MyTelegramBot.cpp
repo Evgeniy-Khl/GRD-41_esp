@@ -430,6 +430,11 @@ bool MyTelegramBot::sendMessage(const String& chat_id, const String& text,
 
   if (parse_mode != "")
     payload["parse_mode"] = parse_mode;
+  
+  // Вывод содержимого payload в Serial Monitor
+  Serial.print("Отправляемый payload: ");
+  serializeJson(payload, Serial); 
+  Serial.println(); // Добавляем перенос строки для красоты
 
   return sendPostMessage(payload.as<JsonObject>(), message_id); // if message id == 0 then edit is false, else edit is true
 }

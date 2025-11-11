@@ -1,8 +1,6 @@
-#include <Arduino.h>
-#include <SoftwareSerial.h>
+#ifndef __USART_H
+#define __USART_H
 
-#ifndef KLIMAT8266_H
-#define KLIMAT8266_H
 #define START_MARKER 0xDD	// Начало блока = 221
 
 #define READDEFAULT 0
@@ -22,4 +20,4 @@ void saveSet(uint8_t status);
 void printData(const char* mess, uint8_t size);
 // void sendData(int command, uint8_t *data = nullptr);
 
-#endif // KLIMAT8266_H
+#endif /* _USART_H */

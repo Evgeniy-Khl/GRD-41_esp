@@ -7,12 +7,6 @@
   Flash: [=====     ]  51.7% (used 539695 bytes from 1044464 bytes)
 */
 
-// Import required libraries
-#include <Arduino.h>
-#include <SoftwareSerial.h>
-#include <MyTelegramBot.h>
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <LittleFS.h>
 #include "main.h"
 #include "usart.h"
 #include "telegram.h"

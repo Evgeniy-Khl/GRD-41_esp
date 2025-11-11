@@ -76,11 +76,11 @@ void readData(){
                         if(tmrTelegramOff <= 0){
                             if(upv.pv.errors && lastError != upv.pv.errors){
                                 sendErrMessages(upv.pv.errors);
-                                lastError = upv.pv.errors;      // exclude duplicate message
-                            } else if (status != upv.pv.portFlag&4){
+                                lastError = upv.pv.errors;              // exclude duplicate message
+                            } else if (status != upv.pv.portFlag&4){    // WORK - shutdown flag
                                 status = upv.pv.portFlag&4;
                                 sendStatus(chatID);
-                            } else {
+                            } else {                // check incoming messages
                                 int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
                                 while(numNewMessages) {
                                     Serial.println();

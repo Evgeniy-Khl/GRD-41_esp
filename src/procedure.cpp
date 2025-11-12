@@ -141,6 +141,7 @@ void initWiFiManag(void){
         configFile.close();
       }
       //============================== END SAVE =====================================
+      const int ledPin = 2;           // Set LED GPIO
       pinMode(ledPin, OUTPUT);
 
       server.on("/", HTTP_GET, []() {

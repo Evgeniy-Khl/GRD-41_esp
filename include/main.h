@@ -40,24 +40,8 @@
 #define RAMPV_SIZE   46
 #define BUF_CAPACITY 64
 
-const int ledPin = 2;           // Set LED GPIO
-
-char botToken[50] = "";  // your Bot Token (Get from Botfather);
-char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
-char nameID [15] = "";
-
 enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};
-
-//flag for saving data
-bool shouldSaveConfig = false;
-// Массив для приема / передачи по UART
-uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
-uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
-int8_t tmrTelegramOff = 30;
-uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
-long lastSendTime = 0, allTime = 0; 
-Interval interval = INTERVAL_4000;
 
 struct Rampv {
     uint8_t model;       // 1 байт ind=0  модель прибора
@@ -79,11 +63,15 @@ union Upv{
   Rampv pv;
 };
 
+extern char botToken[50], chatID [15];
+extern bool shouldSaveConfig;
+extern uint8_t mode, myIp[6]; 
+extern int8_t tmrTelegramOff;
 extern Interval interval;
 extern Upv upv;
 extern ESP8266WebServer server;
 extern WiFiClientSecure client;
-extern MyTelegramBot bot(botToken, client);
+extern MyTelegramBot bot;
 
 
 #endif /* MAIN_H */

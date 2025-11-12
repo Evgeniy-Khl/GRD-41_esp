@@ -4,6 +4,18 @@
 #include "usart.h"
 #include "telegram.h"
 
+char botToken[50] = "";  // your Bot Token (Get from Botfather);
+char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+//flag for saving data
+bool shouldSaveConfig = false;
+// Массив для приема / передачи по UART
+uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
+uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
+int8_t tmrTelegramOff = 30;
+uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
+long lastSendTime = 0, allTime = 0; 
+Interval interval = INTERVAL_4000;
+
 #ifdef ESP8266
   X509List cert(TELEGRAM_CERTIFICATE_ROOT);
 #endif

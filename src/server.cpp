@@ -12,8 +12,8 @@
 #include "strings_ua.h"
 #endif
 
-extern char chatID[], nameID [], myIp[6];
-extern uint8_t seconds, mode, status;
+extern char chatID[];
+extern uint8_t seconds, mode, status, myIp[6];
 extern long lastSendTime;
 extern int8_t tmrTelegramOff;
 extern uint16_t speedFan[];
@@ -40,7 +40,7 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 120;
     JsonDocument data;
-    data["model"] = F("GRD Max4.") + String(upv.pv.model) + F("&nbsp;&nbsp;&nbsp;ID:&nbsp;") + String(nameID);
+    data["model"] = F("GRD Max4.") + String(upv.pv.model) + F("&nbsp;&nbsp;&nbsp;ID:&nbsp;") + String(1);
     if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
     else data["status"] = WORD_STOP;
     switch (upv.pv.modeCell){

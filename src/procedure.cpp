@@ -41,12 +41,11 @@ void listFilesAndSizes() {
 }
 
 void initWiFiManag(void){
-// The extra parameters to be configured (can be either global or just in the setup)
+    // The extra parameters to be configured (can be either global or just in the setup)
     // After connecting, parameter.getValue() will get you the configured value
     // id/name placeholder/prompt default length
     WiFiManagerParameter custom_botToken("botToken", "BOT token", botToken, 50);
     WiFiManagerParameter custom_chatID("chatID", "Chat ID", chatID, 11);
-    WiFiManagerParameter custom_nameID("nameID", "Name ID", nameID, 11);
 
     //WiFiManager https://github.com/tzapu/WiFiManager
     //Local intialization. Once its business is done, there is no need to keep it around
@@ -58,115 +57,128 @@ void initWiFiManag(void){
     //add all your parameters here
     wifiManager.addParameter(&custom_botToken);
     wifiManager.addParameter(&custom_chatID);
-    wifiManager.addParameter(&custom_nameID);
 
-    //-------------------------------------------------------------------------------------reset settings - for testing--------------
-    // wifiManager.resetSettings();
-    //-----------------------------------------------------
+    //------------------ reset settings ------------------------
+    if(upv.pv.set[11] & 0x08){
+      upv.pv.set[11] &= 0xF7;
+    //   saveSetpoint();
+      wifiManager.resetSettings();
+    } 
+    //----------------------------------------------------------
+
     //set minimu quality of signal so it ignores AP's under that quality
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
-
-    //sets timeout until configuration portal gets turned off
-    //useful to make it all retry or go to sleep
-    //in seconds
-    //wifiManager.setTimeout(120);
-
-    //------------------------------------------------------------------------- fetches ssid and pass and tries to connect ---------
-    //if it does not connect it starts an access point with the specified name
-    //here  "AutoConnectAP"
-    //and goes into a blocking loop awaiting configuration
-    if (!wifiManager.autoConnect("AutoConnectAP")) {
-      Serial.println("failed to connect and hit timeout");
-      delay(3000);
-      //reset and try again, or maybe put it to deep sleep
-      ESP.restart();
-      delay(5000);
-    }
-
-    //if you get here you have connected to the WiFi
-    Serial.print("connected...yeey   local ip:");
-    IPAddress ip = WiFi.localIP();
-    Serial.println(ip);	// Print ESP32 Local IP Address
-    myIp[0] = ip[0]; // Первый байт IP-адреса
-    myIp[1] = ip[1]; // Второй байт IP-адреса
-    myIp[2] = ip[2]; // Третий байт IP-адреса
-    myIp[3] = ip[3]; // Четвертый байт IP-адреса
-
-    //read updated parameters
-    strcpy(botToken, custom_botToken.getValue());
-    strcpy(chatID, custom_chatID.getValue());
-    strcpy(nameID, custom_nameID.getValue());
-    myIp[4] = strlen(botToken); // For C-style strings (null-terminated character arrays):
-    myIp[5] = strlen(chatID);   // For C-style strings (null-terminated character arrays):
-    Serial.println("----The values in the file are ----");
-    Serial.println("botToken:" + String(botToken));
-    Serial.println("chatID:" + String(chatID));
-    Serial.println("nameID:" + String(nameID));
-    Serial.println();
-    // Проверяем, что botToken не пустая
-    if (strlen(botToken) > 0) {
-        bot.updateToken(botToken);
-        // if(botSetup()) Serial.println("The command list was updated successfully.");
-        bot.sendMessage(chatID, "GRD Max", "");//bot.sendMessage("25235518", "Hola amigo!", "Markdown");
-    }
-    
-    //save the custom parameters to FS
-    if (shouldSaveConfig) {
-      Serial.println("saving config");
-      JsonDocument json;
-      json["botToken"] = botToken;
-      json["chatID"] = chatID;
-      json["nameID"] = nameID;
-
-      File configFile = LittleFS.open("/config.json", "w");
-      if (!configFile) {
-        Serial.println("failed to open config file for writing");
+   //----------------------------------------------------------
+    uint8_t tt = (upv.pv.set[11] & 0x30) * 60;// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
+    /* data[0] = 0b00111001; // (67)	  C
+    data[1] = 0b01011100; // (111)	o
+    data[2] = 0b01010100; // (110)	n
+    if(tt/100) data[3] = NUMBER_FONT[tt/100];
+    data[4] = NUMBER_FONT[(tt/10)%10];
+    data[5] = NUMBER_FONT[tt%10];
+    data[6] = 0b00111110; // (85)	U
+    data[7] = 0b01110001; // (70)	F
+    module.setDisplay(data, 8); */
+    wifiManager.setConfigPortalTimeout(tt);   
+    //--------------------------------------------------------------
+    // Пытаемся подключиться
+    if (!wifiManager.autoConnect("GRD_AP")) {
+      MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
+      /* data[3] = DEF;
+      data[4] = DEF;
+      data[5] = DEF;  // ---
+      module.setDisplay(data, 8);
+      delay(1000); */
+      // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
+    } else {
+      //------- if you get here you have connected to the WiFi -----------
+      // WIFIENABLE = 1;
+      MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
+      IPAddress ip = WiFi.localIP();
+      Serial.println(ip);	// Print ESP32 Local IP Address
+      myIp[0] = ip[0]; // Первый байт IP-адреса
+      myIp[1] = ip[1]; // Второй байт IP-адреса
+      myIp[2] = ip[2]; // Третий байт IP-адреса
+      myIp[3] = ip[3]; // Четвертый байт IP-адреса
+      #ifdef ESP8266
+        X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+        client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
+      #endif
+      //------------------ read updated parameters -----------------------
+      strcpy(botToken, custom_botToken.getValue());
+      strcpy(chatID, custom_chatID.getValue());
+      myIp[4] = strlen(botToken); // For C-style strings (null-terminated character arrays):
+      myIp[5] = strlen(chatID);   // For C-style strings (null-terminated character arrays):
+      MYDEBUG_PRINTLN("----The values in the file are ----");
+      MYDEBUG_PRINTLN("botToken:" + String(botToken));
+      MYDEBUG_PRINTLN("chatID:" + String(chatID));
+      MYDEBUG_PRINTLN();
+      //-------------- Проверяем, что botToken не пустая -----------------
+      if (strlen(botToken) > 0) {
+          bot.updateToken(botToken);
+          // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
+          uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+          DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+          uint8_t num = upv.pv.node & 0x0F;
+          bot.sendMessage(chatID, "Climate-5.25  №" + String(num), "");
+          // BOTENABLE = 1;
+          MYDEBUG_PRINTLN("bot.updateToken!");
       }
-
-      serializeJson(json, Serial);
-      serializeJson(json, configFile);
-      configFile.close();
-      //end save
-    }
-
-    pinMode(ledPin, OUTPUT);
-
-    server.on("/", HTTP_GET, []() {
-      mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 120;
-      if (!LittleFS.exists("/index.html")) {
-        Serial.println("index.html not found");
-      } else {
-        File file = LittleFS.open("/index.html", "r");
-        if (!file) {
-            server.send(404, "text/plain", "I can't open the index.html");
-            return;
+      //--------------- save the custom parameters to FS -------------------------
+      if(shouldSaveConfig) {
+        MYDEBUG_PRINTLN("saving config");
+        JsonDocument json;
+        json["botToken"] = botToken;
+        json["chatID"] = chatID;
+        File configFile = LittleFS.open("/config.json", "w");
+        if (!configFile) {
+          MYDEBUG_PRINTLN("failed to open config file for writing");
         }
+        serializeJson(json, Serial);
+        serializeJson(json, configFile);
+        configFile.close();
+      }
+      //============================== END SAVE =====================================
+      pinMode(ledPin, OUTPUT);
+
+      server.on("/", HTTP_GET, []() {
+        mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 120;
+        if (!LittleFS.exists("/index.html")) {
+          Serial.println("index.html not found");
+        } else {
+          File file = LittleFS.open("/index.html", "r");
+          if (!file) {
+              server.send(404, "text/plain", "I can't open the index.html");
+              return;
+          }
+          server.streamFile(file, "text/html");
+          file.close();
+        }
+      });
+      server.on("/setup", HTTP_GET, []() {
+        // Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
+        if (!LittleFS.exists("/index.html")) {
+          Serial.println("index.html not found");
+        } else {
+          File file = LittleFS.open("/setup.html", "r");
+          if (!file) {
+              server.send(404, "text/plain", "File Not Found");
+              return;
+          }
         server.streamFile(file, "text/html");
         file.close();
-      }
-    });
-    server.on("/setup", HTTP_GET, []() {
-      // Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
-      if (!LittleFS.exists("/index.html")) {
-        Serial.println("index.html not found");
-      } else {
-        File file = LittleFS.open("/setup.html", "r");
-        if (!file) {
-            server.send(404, "text/plain", "File Not Found");
-            return;
         }
-      server.streamFile(file, "text/html");
-      file.close();
-      }
-    });
-    server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
-    server.on("/geteeprom", HTTP_GET, respondsSet);      // the server responds the completed setup.html to the client
-    server.on("/seteeprom", HTTP_POST, acceptSet);       // the server accepts the edited setup.html from the client
-    server.onNotFound(notFoundHandler);
-    
-    server.begin();   // Start server
-    Serial.println("HTTP server started");
+      });
+      server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
+      server.on("/geteeprom", HTTP_GET, respondsSet);      // the server responds the completed setup.html to the client
+      server.on("/seteeprom", HTTP_POST, acceptSet);       // the server accepts the edited setup.html from the client
+      server.onNotFound(notFoundHandler);
+      
+      server.begin();   // Start server
+      Serial.println("HTTP server started");
+    }
 }
 
 void listDir(const char *dir) {

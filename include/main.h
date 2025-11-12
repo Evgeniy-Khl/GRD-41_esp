@@ -82,6 +82,8 @@ union Upv{
 extern Interval interval;
 extern Upv upv;
 extern ESP8266WebServer server;
+extern WiFiClientSecure client;
+extern MyTelegramBot bot(botToken, client);
 
 
 #endif /* MAIN_H */

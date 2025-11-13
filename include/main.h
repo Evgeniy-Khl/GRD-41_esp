@@ -63,16 +63,16 @@ struct __attribute__((packed)) Rampv {
 };
 #define RAMPV_SIZE sizeof(Rampv) // определение размера
 union Upv{
-  uint8_t receivedData[RAMPV_SIZE]; // Массив для приема
+  uint8_t dataUnion[RAMPV_SIZE]; // Массив для приема
   Rampv pv;
 };
 
 extern char botToken[50], chatID [15];
-extern bool shouldSaveConfig;
+extern bool shouldSaveConfig, wifiEnable;
 extern uint8_t mode, myIp[6]; 
 extern int8_t tmrTelegramOff;
 extern Interval interval;
-extern Upv upv;
+extern Upv sendData, recvData;
 extern ESP8266WebServer server;
 extern WiFiClientSecure client;
 extern MyTelegramBot bot;

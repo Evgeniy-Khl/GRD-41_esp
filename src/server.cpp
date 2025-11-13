@@ -40,37 +40,37 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 120;
     JsonDocument data;
-    data["model"] = F("GRD Max4.") + String(upv.pv.model) + F("&nbsp;&nbsp;&nbsp;ID:&nbsp;") + String(1);
-    if(upv.pv.portFlag & 4) data["status"] = WORD_WORK;
+    data["model"] = F("GRD Max4.") + String(recvData.pv.model) + F("&nbsp;&nbsp;&nbsp;ID:&nbsp;") + String(1);
+    if(recvData.pv.portFlag & 4) data["status"] = WORD_WORK;
     else data["status"] = WORD_STOP;
-    switch (upv.pv.modeCell){
+    switch (recvData.pv.modeCell){
       case 0: data["modeCell"] = WORD_MODE0; break;
       case 1: data["modeCell"] = WORD_MODE1; break;
       case 2: data["modeCell"] = WORD_MODE2; break;
       case 3: data["modeCell"] = WORD_MODE3; break;
       default: data["modeCell"] = ""; break;
     }
-    data["temperature0"] = getFloat((float)upv.pv.t[0]/10,0);
-    data["temperature1"] = getFloat((float)upv.pv.t[1]/10,0);
-    data["settemp0"] = getFloat((float)upv.pv.set[0]/1,1);
-    data["settemp1"] = getFloat((float)upv.pv.set[1]/1,1);
-    data["temperature2"] = getFloat((float)upv.pv.t[2]/10,0);
-    data["temperature3"] = getFloat((float)upv.pv.t[3]/10,0);
-    uint8_t speed = upv.pv.set[VENT];
-    if(upv.pv.portFlag & 2) data["fanSpeed"] = String(speedFan[speed]) + WORD_RPM;
+    data["temperature0"] = getFloat((float)recvData.pv.t[0]/10,0);
+    data["temperature1"] = getFloat((float)recvData.pv.t[1]/10,0);
+    data["settemp0"] = getFloat((float)recvData.pv.set[0]/1,1);
+    data["settemp1"] = getFloat((float)recvData.pv.set[1]/1,1);
+    data["temperature2"] = getFloat((float)recvData.pv.t[2]/10,0);
+    data["temperature3"] = getFloat((float)recvData.pv.t[3]/10,0);
+    uint8_t speed = recvData.pv.set[VENT];
+    if(recvData.pv.portFlag & 2) data["fanSpeed"] = String(speedFan[speed]) + WORD_RPM;
     else data["fanSpeed"] = WORD_STOP;
-    data["duration"] = String(upv.pv.set[TMR0]/60) + WORD_HOURS + String(upv.pv.set[TMR0]%60) + WORD_MINUTS;
-    if(upv.pv.portFlag & 4){
+    data["duration"] = String(recvData.pv.set[TMR0]/60) + WORD_HOURS + String(recvData.pv.set[TMR0]%60) + WORD_MINUTS;
+    if(recvData.pv.portFlag & 4){
       char time[12];
-      sprintf(time,"%02d:%02d:%02d", upv.pv.currHour, upv.pv.currMin, upv.pv.currSec);
+      sprintf(time,"%02d:%02d:%02d", recvData.pv.currHour, recvData.pv.currMin, recvData.pv.currSec);
       data["time"] = String(time);
-      data["power"] = String(upv.pv.dsplPW) + WORD_PCT;
+      data["power"] = String(recvData.pv.dsplPW) + WORD_PCT;
     } else {
       data["time"] = WORD_STOP;
       data["power"] = String(0) + WORD_PCT;
     }
     
-    if(upv.pv.errors) data["errors"] = String(upv.pv.errors);
+    if(recvData.pv.errors) data["errors"] = String(recvData.pv.errors);
     else data["errors"] = WORD_NONE;
     
     serializeJson(data, jsonResponse);
@@ -83,19 +83,19 @@ void respondsValues() {
 void respondsSet(){
     String jsonResponse;
     JsonDocument doc;
-        doc["set0"] = upv.pv.set[0];
-        doc["set1"] = upv.pv.set[1];
-        doc["set2"] = upv.pv.set[2];
-        doc["set3"] = upv.pv.set[3];
-        doc["set4"] = upv.pv.set[4];
-        doc["set5"] = upv.pv.set[5];
-        doc["set6"] = upv.pv.set[6];
-        doc["set7"] = upv.pv.set[7];
-        doc["set8"] = upv.pv.set[8];
-        doc["set9"] = upv.pv.set[9];
-        doc["set10"] = upv.pv.set[10];
-        doc["set11"] = upv.pv.set[11];
-        doc["status"] = (upv.pv.portFlag & 4)/4;
+        doc["set0"] = recvData.pv.set[0];
+        doc["set1"] = recvData.pv.set[1];
+        doc["set2"] = recvData.pv.set[2];
+        doc["set3"] = recvData.pv.set[3];
+        doc["set4"] = recvData.pv.set[4];
+        doc["set5"] = recvData.pv.set[5];
+        doc["set6"] = recvData.pv.set[6];
+        doc["set7"] = recvData.pv.set[7];
+        doc["set8"] = recvData.pv.set[8];
+        doc["set9"] = recvData.pv.set[9];
+        doc["set10"] = recvData.pv.set[10];
+        doc["set11"] = recvData.pv.set[11];
+        doc["status"] = (recvData.pv.portFlag & 4)/4;
         
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
@@ -116,22 +116,22 @@ void acceptSet() {
       // Логирование параметров (раскомментируйте, если нужно)
       // DEBUG_PRINTF("Parameter: %s, Value: %s\n", paramName.c_str(), paramValue.c_str());
       
-      if (paramName == "set0") upv.pv.set[0] = paramValue.toInt();
-      else if (paramName == "set1") upv.pv.set[1] = paramValue.toInt();
-      else if (paramName == "set2") upv.pv.set[2] = paramValue.toInt();
-      else if (paramName == "set3") upv.pv.set[3] = paramValue.toInt();
-      else if (paramName == "set4") upv.pv.set[4] = paramValue.toInt();
-      else if (paramName == "set5") upv.pv.set[5] = paramValue.toInt();
-      else if (paramName == "set6") upv.pv.set[6] = paramValue.toInt();
-      else if (paramName == "set7") upv.pv.set[7] = paramValue.toInt();
-      else if (paramName == "set8") upv.pv.set[8] = paramValue.toInt();
-      else if (paramName == "set9") upv.pv.set[9] = paramValue.toInt();
-      else if (paramName == "set10") upv.pv.set[10] = paramValue.toInt();
-      else if (paramName == "set11") upv.pv.set[11] = paramValue.toInt();
+      if (paramName == "set0") sendData.pv.set[0] = paramValue.toInt();
+      else if (paramName == "set1") sendData.pv.set[1] = paramValue.toInt();
+      else if (paramName == "set2") sendData.pv.set[2] = paramValue.toInt();
+      else if (paramName == "set3") sendData.pv.set[3] = paramValue.toInt();
+      else if (paramName == "set4") sendData.pv.set[4] = paramValue.toInt();
+      else if (paramName == "set5") sendData.pv.set[5] = paramValue.toInt();
+      else if (paramName == "set6") sendData.pv.set[6] = paramValue.toInt();
+      else if (paramName == "set7") sendData.pv.set[7] = paramValue.toInt();
+      else if (paramName == "set8") sendData.pv.set[8] = paramValue.toInt();
+      else if (paramName == "set9") sendData.pv.set[9] = paramValue.toInt();
+      else if (paramName == "set10") sendData.pv.set[10] = paramValue.toInt();
+      else if (paramName == "set11") sendData.pv.set[11] = paramValue.toInt();
       else if (paramName == "status") status = paramValue.toInt();
   }
   server.send(200); // Отправляем только статус 200
-  if (status == 1) upv.pv.portFlag |= 4; else if(status == 0) upv.pv.portFlag &= 0xFB;
+  if (status == 1) recvData.pv.portFlag |= 4; else if(status == 0) recvData.pv.portFlag &= 0xFB;
   saveSet(status);
   // if (myIp[4] > 40 && myIp[5] > 9) sendStatus(chatID);
   // myIp[4] -> strlen(botToken)

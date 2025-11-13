@@ -13,7 +13,10 @@ const unsigned long fadeInterval = 10; // Скорость анимации (в 
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
 //flag for saving data
-bool shouldSaveConfig = false;
+bool shouldSaveConfig = false, wifiEnable = false;
+// Создаем переменные для отправки и приема
+Upv sendData;
+Upv recvData;
 // Массив для приема / передачи по UART
 uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
 uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
@@ -23,7 +26,6 @@ long lastSendTime = 0, allTime = 0;
 Interval interval = INTERVAL_4000;
 
 EspSoftwareSerial::UART mySerial;
-Upv upv;
 ESP8266WebServer server(80);
 WiFiClientSecure client;
 MyTelegramBot bot(botToken, client);
@@ -68,7 +70,7 @@ void setup(){
   // ------------------------------ БЛОКИРУЮЩИЙ ВЫЗОВ ----------------------------------------
   waitForCorrectData();
   //---------------------------- инициализация WiFiManager -----------------------------------
-  if(upv.pv.set[11] & 0x30) initWiFiManag(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if(recvData.pv.set[11] & 0x30) initWiFiManag(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
   //------------------------------------------------------------------------------
     begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
@@ -84,7 +86,7 @@ void loop(){
     //   earlyMode = mode;
     // }
     lastSendTime = now;
-    // Serial.print("Free heap size: ");
+    // MYDEBUG_PRINT("Free heap size: ");
     // MYDEBUG_PRINTLN(system_get_free_heap_size());
 
     seconds += interval/1000;

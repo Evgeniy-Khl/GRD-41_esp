@@ -15,10 +15,10 @@ void listFilesAndSizes() {
     // Для каждого элемента получаем объект File
     File entry = dir.openFile("r");
     if (entry) {
-      Serial.print("Файл: ");
-      Serial.print(entry.name());
-      Serial.print("\tРазмер: ");
-      Serial.print(entry.size());
+      MYDEBUG_PRINT("Файл: ");
+      MYDEBUG_PRINT(entry.name());
+      MYDEBUG_PRINT("\tРазмер: ");
+      MYDEBUG_PRINT(entry.size());
       MYDEBUG_PRINTLN(" Байт");
       totalSize += entry.size();
       fileCount++;
@@ -59,8 +59,8 @@ void initWiFiManag(void){
     wifiManager.addParameter(&custom_chatID);
 
     //------------------ reset settings ------------------------
-    if(upv.pv.set[11] & 0x08){
-      upv.pv.set[11] &= 0xF7;
+    if(recvData.pv.set[11] & 0x08){
+      recvData.pv.set[11] &= 0xF7;
     //   saveSetpoint();
       wifiManager.resetSettings();
     } 
@@ -70,31 +70,17 @@ void initWiFiManag(void){
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
    //----------------------------------------------------------
-    uint8_t tt = (upv.pv.set[11] & 0x30) * 60;// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    uint8_t tt = (recvData.pv.set[11] & 0x30) * 60;// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
-    /* data[0] = 0b00111001; // (67)	  C
-    data[1] = 0b01011100; // (111)	o
-    data[2] = 0b01010100; // (110)	n
-    if(tt/100) data[3] = NUMBER_FONT[tt/100];
-    data[4] = NUMBER_FONT[(tt/10)%10];
-    data[5] = NUMBER_FONT[tt%10];
-    data[6] = 0b00111110; // (85)	U
-    data[7] = 0b01110001; // (70)	F
-    module.setDisplay(data, 8); */
     wifiManager.setConfigPortalTimeout(tt);   
     //--------------------------------------------------------------
     // Пытаемся подключиться
     if (!wifiManager.autoConnect("GRD_AP")) {
       MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
-      /* data[3] = DEF;
-      data[4] = DEF;
-      data[5] = DEF;  // ---
-      module.setDisplay(data, 8);
-      delay(1000); */
       // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
     } else {
       //------- if you get here you have connected to the WiFi -----------
-      // WIFIENABLE = 1;
+      wifiEnable = true;
       MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
       IPAddress ip = WiFi.localIP();
       MYDEBUG_PRINTLN(ip);	// Print ESP32 Local IP Address
@@ -121,7 +107,7 @@ void initWiFiManag(void){
           // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
           uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
           DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
-          uint8_t num = upv.pv.node & 0x0F;
+          uint8_t num = recvData.pv.node & 0x0F;
           bot.sendMessage(chatID, "Climate-5.25  №" + String(num), "");
           // BOTENABLE = 1;
           MYDEBUG_PRINTLN("bot.updateToken!");
@@ -183,14 +169,14 @@ void listDir(const char *dir) {
   DEBUG_PRINTF("Directory contents: %s\n", dir);
   fs::Dir root = LittleFS.openDir("/");
   while (root.next()) {
-    Serial.print("  ");
+    MYDEBUG_PRINT("  ");
     if (root.isDirectory()) {
-        Serial.print("DIR : ");
+        MYDEBUG_PRINT("DIR : ");
     } else {
-        Serial.print("FILE: ");
+        MYDEBUG_PRINT("FILE: ");
     }
-    Serial.print(root.fileName());
-    Serial.print("  SIZE: ");
+    MYDEBUG_PRINT(root.fileName());
+    MYDEBUG_PRINT("  SIZE: ");
     MYDEBUG_PRINTLN(root.fileSize());
   }
 }

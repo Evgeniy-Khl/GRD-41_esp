@@ -10,12 +10,27 @@ extern char chatID [];
 extern uint8_t mode, errors, lastError, seconds, status, receiveBuff[], transmitBuff[], myIp[6];
 extern int8_t tmrTelegramOff;
 
-byte calculateChecksum(byte* data, int length) {
+byte calculateChecksum(uint8_t* data, int length) {
     byte checksum = 0;
     for (int i = 1; i < length; i++) {
         checksum ^= data[i]; // Using XOR to calculate the checksum
     }
     return checksum;
+}
+
+void sendStruct() { 
+    // Передаем байтовый массив и размер
+    uint8_t checksum = calculateChecksum(sendData.dataUnion, RAMPV_SIZE);
+    
+    // Отправляем: [Старт] [Данные] [КС] [Конец]
+    mySerial.write(RAMPV_START_MARKER);
+    // Используем байтовый массив для отправки
+    mySerial.write(sendData.dataUnion, RAMPV_SIZE);
+    mySerial.write(checksum);
+    mySerial.write(RAMPV_END_MARKER);
+    
+    Serial.print("Отправлено байт (46 данных + 4 протокол): ");
+    Serial.println(RAMPV_SIZE + 4);
 }
 
 void getData(uint8_t command){
@@ -35,23 +50,23 @@ void saveSet(uint8_t stat){
     dataToSend[1] = SET_EEPROM;
     DEBUG_PRINTF("-----------saveEeprom()->%d; seconds: %d,%ld sec.\n",SET_EEPROM,seconds,millis()-lastSendTime);
     for (uint8_t i = 0; i < 2; i++) {
-        Serial.print(dataToSend[i]);
-        Serial.print("; ");
+        MYDEBUG_PRINT(dataToSend[i]);
+        MYDEBUG_PRINT("; ");
     }
     for (uint8_t i = 12; i < 12+INDEX*2; i++) {
-        crc ^= upv.receivedData[i];
-        Serial.print(upv.receivedData[i]);
-        Serial.print("; ");
+        crc ^= recvData.dataUnion[i];
+        MYDEBUG_PRINT(recvData.dataUnion[i]);
+        MYDEBUG_PRINT("; ");
     }
-    Serial.print("|| ");
+    MYDEBUG_PRINT("|| ");
     MYDEBUG_PRINTLN(crc);
-    DEBUG_PRINTF("S0:%u; S1:%u; S2:%u; S3:%u; ",upv.pv.set[0],upv.pv.set[1],upv.pv.set[2],upv.pv.set[3]);
-    DEBUG_PRINTF("S4:%u; S5:%u; S6:%u; S7:%u; ",upv.pv.set[4],upv.pv.set[5],upv.pv.set[6],upv.pv.set[7]);
-    DEBUG_PRINTF("S8:%u; S9:%u; S10:%u; S11:%u;\n",upv.pv.set[8],upv.pv.set[9],upv.pv.set[10],upv.pv.set[11]);
+    DEBUG_PRINTF("S0:%u; S1:%u; S2:%u; S3:%u; ",recvData.pv.set[0],recvData.pv.set[1],recvData.pv.set[2],recvData.pv.set[3]);
+    DEBUG_PRINTF("S4:%u; S5:%u; S6:%u; S7:%u; ",recvData.pv.set[4],recvData.pv.set[5],recvData.pv.set[6],recvData.pv.set[7]);
+    DEBUG_PRINTF("S8:%u; S9:%u; S10:%u; S11:%u;\n",recvData.pv.set[8],recvData.pv.set[9],recvData.pv.set[10],recvData.pv.set[11]);
     MYDEBUG_PRINTLN("-----------mySerial.write()");
     
     mySerial.write(dataToSend,2);
-    mySerial.write(&upv.receivedData[12],INDEX*2);// 24 byte
+    mySerial.write(&recvData.dataUnion[12],INDEX*2);// 24 byte
     mySerial.write(&crc,1);
     crc = stat;             // added status
     mySerial.write(&crc,1); // TOTAL 28 byte
@@ -70,20 +85,20 @@ void readData(){
                     long readTime = millis();
                     //DEBUG_PRINTF("Read VALUES: %dsec. ",seconds);
                     if (receivedChecksum == calculatedChecksum) {
-                        memcpy(upv.receivedData, &receiveBuff[1], RAMPV_SIZE);
+                        memcpy(recvData.dataUnion, &receiveBuff[1], RAMPV_SIZE);
                         //MYDEBUG_PRINTLN("Valid VALUES.------------------------");
                         if(tmrTelegramOff <= 0){
-                            if(upv.pv.errors && lastError != upv.pv.errors){
-                                sendErrMessages(upv.pv.errors);
-                                lastError = upv.pv.errors;              // exclude duplicate message
-                            } else if (status != (upv.pv.portFlag & 4)){    // WORK - shutdown flag
-                                status = upv.pv.portFlag&4;
+                            if(recvData.pv.errors && lastError != recvData.pv.errors){
+                                sendErrMessages(recvData.pv.errors);
+                                lastError = recvData.pv.errors;              // exclude duplicate message
+                            } else if (status != (recvData.pv.portFlag & 4)){    // WORK - shutdown flag
+                                status = recvData.pv.portFlag&4;
                                 sendStatus();
                             } else {                // check incoming messages
                                 int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
                                 while(numNewMessages) {
                                     MYDEBUG_PRINTLN();
-                                    Serial.print("got response:");
+                                    MYDEBUG_PRINT("got response:");
                                     handleNewMessages(numNewMessages);
                                     numNewMessages = bot.getUpdates(bot.last_message_received + 1);
                                 }
@@ -118,23 +133,23 @@ void readData(){
 void printData(const char* mess, uint8_t size){
     MYDEBUG_PRINTLN(mess);
     for (uint8_t i = 0; i < size; i++) {
-        Serial.print(receiveBuff[i]);
-        Serial.print("; ");
-        if(i==size-1) Serial.print("|| ");
+        MYDEBUG_PRINT(receiveBuff[i]);
+        MYDEBUG_PRINT("; ");
+        if(i==size-1) MYDEBUG_PRINT("|| ");
     }              
     MYDEBUG_PRINTLN("  size:"+String(size));
-    DEBUG_PRINTF("model:%u; node:%u; mode:%u; port:0x%02x; ",upv.pv.model,upv.pv.node,upv.pv.modeCell,upv.pv.portFlag);
+    DEBUG_PRINTF("model:%u; node:%u; mode:%u; port:0x%02x; ",recvData.pv.model,recvData.pv.node,recvData.pv.modeCell,recvData.pv.portFlag);
     DEBUG_PRINTF("t0:%3.1f; t1:%3.1f; t2:%3.1f; t3:%3.1f;\n",
-        (float)upv.pv.t[0]/10,(float)upv.pv.t[1]/10,(float)upv.pv.t[2]/10,(float)upv.pv.t[3]/10);
-    DEBUG_PRINTF("S0:%u; S1:%u; S2:%u; S3:%u; ",upv.pv.set[0],upv.pv.set[1],upv.pv.set[2],upv.pv.set[3]);
-    DEBUG_PRINTF("S4:%u; S5:%u; S6:%u; S7:%u; ",upv.pv.set[4],upv.pv.set[5],upv.pv.set[6],upv.pv.set[7]);
-    DEBUG_PRINTF("S8:%u; S9:%u; S10:%u; S11:%u;\n",upv.pv.set[8],upv.pv.set[9],upv.pv.set[10],upv.pv.set[11]);
+        (float)recvData.pv.t[0]/10,(float)recvData.pv.t[1]/10,(float)recvData.pv.t[2]/10,(float)recvData.pv.t[3]/10);
+    DEBUG_PRINTF("S0:%u; S1:%u; S2:%u; S3:%u; ",recvData.pv.set[0],recvData.pv.set[1],recvData.pv.set[2],recvData.pv.set[3]);
+    DEBUG_PRINTF("S4:%u; S5:%u; S6:%u; S7:%u; ",recvData.pv.set[4],recvData.pv.set[5],recvData.pv.set[6],recvData.pv.set[7]);
+    DEBUG_PRINTF("S8:%u; S9:%u; S10:%u; S11:%u;\n",recvData.pv.set[8],recvData.pv.set[9],recvData.pv.set[10],recvData.pv.set[11]);
     
 }
 
 // Функция блокирует выполнение, пока не получит корректный пакет
 void waitForCorrectData() {
-    Serial.println("--- Ожидание корректного пакета данных в setup()...");
+    MYDEBUG_PRINTLN("--- Ожидание корректного пакета данных в setup()...");
     
     // Переменные для отслеживания состояния приема
     uint8_t receiveIndex = 0;
@@ -149,11 +164,9 @@ void waitForCorrectData() {
             digitalWrite(LED_PIN, LOW); // LED ON
             delay(FLASH_DELAY);
             digitalWrite(LED_PIN, HIGH); // LED OFF
-            delay(FLASH_DELAY);
+            delay(FLASH_DELAY*5);
         }
         
-        // Дополнительная пауза перед следующей парой вспышек
-        delay(100); 
         // ----------------------------------------------------
         if (mySerial.available()) {
             uint8_t incomingByte = mySerial.read();
@@ -163,13 +176,13 @@ void waitForCorrectData() {
                 if (incomingByte == RAMPV_START_MARKER) {
                     receivingData = true;
                     receiveIndex = 0;
-                    Serial.println("Стартовый маркер (0xAA) получен. Начинаем прием...");
+                    MYDEBUG_PRINTLN("Стартовый маркер (0xAA) получен. Начинаем прием...");
                 }
             } else {
                 // СОСТОЯНИЕ 2: Принимаем Данные и Протокол
                 if (receiveIndex < RAMPV_SIZE) {
                     // Прием байтов структуры
-                    tempReceivedUnion.receivedData[receiveIndex] = incomingByte;
+                    tempReceivedUnion.dataUnion[receiveIndex] = incomingByte;
                     receiveIndex++;
                 } else if (receiveIndex == RAMPV_SIZE) {
                     // Прием Контрольной Суммы
@@ -179,22 +192,22 @@ void waitForCorrectData() {
                     // Прием Конечного Маркера
                     if (incomingByte == RAMPV_END_MARKER) {
                         // Пакет получен! Проверка КС
-                        uint8_t expectedChecksum = calculateChecksum(tempReceivedUnion.receivedData, RAMPV_SIZE);
+                        uint8_t expectedChecksum = calculateChecksum(tempReceivedUnion.dataUnion, RAMPV_SIZE);
 
                         if (receivedChecksum == expectedChecksum) {
                             // **УСПЕХ** - Копируем данные в основную структуру и ВЫХОДИМ.
-                            upv.pv = tempReceivedUnion.pv; 
-                            Serial.println("Пакет принят и ЧЕКСУММ СОВПАЛ. Выход из setup().");
+                            recvData.pv = tempReceivedUnion.pv; 
+                            MYDEBUG_PRINTLN("Пакет принят и ЧЕКСУММ СОВПАЛ. Выход из setup().");
                             return; 
                         } else {
                             // Ошибка контрольной суммы
-                            Serial.print("Ошибка КС: Принято=");
-                            Serial.print(receivedChecksum, HEX);
-                            Serial.print(", Ожидалось=");
-                            Serial.println(expectedChecksum, HEX);
+                            MYDEBUG_PRINT("Ошибка КС: Принято=");
+                            MYDEBUG_PRINT(receivedChecksum, HEX);
+                            MYDEBUG_PRINT(", Ожидалось=");
+                            MYDEBUG_PRINTLN(expectedChecksum, HEX);
                         }
                     } else {
-                        Serial.println("Ошибка: Неверный конечный маркер (0x55). Сброс приема.");
+                        MYDEBUG_PRINTLN("Ошибка: Неверный конечный маркер (0x55). Сброс приема.");
                     }
                     
                     // Сброс состояния приема для поиска нового пакета
@@ -204,6 +217,6 @@ void waitForCorrectData() {
             }
         }
         // Задержка необходима для корректной работы ESP8266 (Wi-Fi и другие задачи)
-        delay(1); 
+        delay(500); 
     }
 }

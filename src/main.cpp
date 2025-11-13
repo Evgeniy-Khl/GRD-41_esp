@@ -4,6 +4,12 @@
 #include "usart.h"
 #include "telegram.h"
 
+// --- Глобальные Переменные для ШИМ в loop() ---
+int brightness = 0;    // Текущая яркость
+int fadeAmount = 5;    // Шаг изменения яркости
+unsigned long lastFadeTime = 0;
+const unsigned long fadeInterval = 10; // Скорость анимации (в мс)
+// --------------------------------------------
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
 //flag for saving data
@@ -93,4 +99,21 @@ void loop(){
   } else {
     readData();
   }
+  // ---------------------- Индикация: Плавное зажигание/гашение (ШИМ) ----------------------
+  if (millis() - lastFadeTime >= fadeInterval) {
+      
+      // Установка яркости LED (от 0 до 1023)
+      // Для ESP8266: analogWrite(PIN, 0) = HIGH (OFF), analogWrite(PIN, 1023) = LOW (ON)
+      analogWrite(LED_PIN, 1023 - brightness); 
+      
+      // Изменение яркости для следующего шага
+      brightness = brightness + fadeAmount;
+
+      // Разворот направления, если достигнуты пределы (0 или 1023)
+      if (brightness <= 0 || brightness >= 1023) {
+          fadeAmount = -fadeAmount; // Инвертировать направление
+      }
+      
+      lastFadeTime = millis();
+  } //---------------------------------------------------------------------------------------
 }

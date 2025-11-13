@@ -16,10 +16,6 @@ uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_4000;
 
-#ifdef ESP8266
-  X509List cert(TELEGRAM_CERTIFICATE_ROOT);
-#endif
-
 EspSoftwareSerial::UART mySerial;
 Upv upv;
 ESP8266WebServer server(80);
@@ -30,10 +26,13 @@ void setup(){
   #ifdef DEBUG
     Serial.begin(115200);               // Инициализация последовательного порта для отладки
   #endif
-
+  // Настройка LED
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH); // Выключить LED (для многих ESP8266 HIGH = OFF)
+  // Настройка UART
   mySerial.begin(4800, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false, BUF_CAPACITY);// bufCapacity = 64 -> 70
   if (!mySerial) {
-    Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
+    MYDEBUG_PRINTLN("Invalid EspSoftwareSerial pin configuration, check config"); 
   } 
 
   //----------------------------------- MOUNTING FS ----------------------------------------
@@ -52,19 +51,22 @@ void setup(){
     // } else {
     //   MYDEBUG_PRINTLN("Failed to format LittleFS");
     // }
-    //--------------------- checkSetpoint ----------------------------------
+    //------------------------------------------------------------------------------------
+    //----------------------------- checkSetpoint ----------------------------------------
     // dataLed[2] = checkSetpoint();
     // dataLed[3] = checkConfig();
   } else {
     MYDEBUG_PRINTLN("failed to mount FS");
     // dataLed[4] = 1;
   }
+  // ------------------------------ БЛОКИРУЮЩИЙ ВЫЗОВ ----------------------------------------
+  waitForCorrectData();
   //---------------------------- инициализация WiFiManager -----------------------------------
   if(upv.pv.set[11] & 0x30) initWiFiManag(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
   //------------------------------------------------------------------------------
     begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
-    Serial.printf("Free heap size: %d\n", begHeapSize);
+    DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
 }
  
 void loop(){
@@ -72,12 +74,12 @@ void loop(){
   long now = millis();
   if (now - lastSendTime > interval) {
     // if(earlyMode != mode){
-      // Serial.printf("mode:%d; seconds:%d; All time:%ld; availableBytes:%d\n", mode, seconds, allTime, mySerial.available());
+      // DEBUG_PRINTF("mode:%d; seconds:%d; All time:%ld; availableBytes:%d\n", mode, seconds, allTime, mySerial.available());
     //   earlyMode = mode;
     // }
     lastSendTime = now;
     // Serial.print("Free heap size: ");
-    // Serial.println(system_get_free_heap_size());
+    // MYDEBUG_PRINTLN(system_get_free_heap_size());
 
     seconds += interval/1000;
     allTime += interval/1000;
@@ -85,7 +87,7 @@ void loop(){
     // int16_t lostHeapSize = ESP.getFreeHeap()-begHeapSize;
     // if(lostHeapSize != previousHeapSize){
     //   previousHeapSize = lostHeapSize;
-    //   Serial.printf("Lost heap size: %d bytes\n", lostHeapSize);
+    //   DEBUG_PRINTF("Lost heap size: %d bytes\n", lostHeapSize);
     // }
     if(mode == 0) getData(GET_VALUES);
   } else {

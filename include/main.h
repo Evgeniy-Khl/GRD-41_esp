@@ -35,15 +35,18 @@
 #endif
 // --- Конец блока макросов ---
 
-#define MYPORT_TX 12
-#define MYPORT_RX 13
-#define RAMPV_SIZE   46
+#define MYPORT_TX   12
+#define MYPORT_RX   13
 #define BUF_CAPACITY 64
+#define RAMPV_START_MARKER  0xAA  // Стартовый байт
+#define RAMPV_END_MARKER    0x55  // Конечный байт
+#define LED_PIN     2 // Или LED_BUILTIN (зависит от платы, 2 - стандарт для NodeMCU)
+#define FLASH_DELAY 50 // Задержка для короткой вспышки (в мс)
 
 enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};
 
-struct Rampv {
+struct __attribute__((packed)) Rampv {
     uint8_t model;       // 1 байт ind=0  модель прибора
     uint8_t node;        // 1 байт ind=1  сетевой номер прибора
     uint8_t modeCell;    // 1 байт ind=2  номер режима
@@ -53,11 +56,12 @@ struct Rampv {
     uint8_t fanSpeed;    // 1 байт ind=36 скорость вращения вентилятора
     uint8_t pvOut;       // 1 байт ind=37 активные выходы реле
     uint8_t dsplPW;      // 1 байт ind=38 мощность подаваемая на тены
-    uint8_t errors;      // 1 байт ind=39 ошибки
+    uint16_t errors;     // 2 байт ind=39 ошибки
     uint8_t currHour;    // 1 байт ind=40 часы
     uint8_t currMin;     // 1 байт ind=41 минуты
     uint8_t currSec;     // 1 байт ind=42 секунды
-};// ------- 42 bytes ------------
+};
+#define RAMPV_SIZE sizeof(Rampv) // определение размера
 union Upv{
   uint8_t receivedData[RAMPV_SIZE]; // Массив для приема
   Rampv pv;

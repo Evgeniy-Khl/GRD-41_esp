@@ -74,10 +74,10 @@ void respondsValues() {
     else data["errors"] = WORD_NONE;
     
     serializeJson(data, jsonResponse);
-    // Serial.printf("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
-    // Serial.println("out=" + response);
+    // DEBUG_PRINTF("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
+    // MYDEBUG_PRINTLN("out=" + response);
     server.send(200, "application/json", jsonResponse);
-    // Serial.printf("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
+    // DEBUG_PRINTF("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
 void respondsSet(){
@@ -98,23 +98,23 @@ void respondsSet(){
         doc["status"] = (upv.pv.portFlag & 4)/4;
         
         serializeJson(doc, jsonResponse); // Сериализуем JSON
-        Serial.printf("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
-        Serial.println(jsonResponse);
+        DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
+        MYDEBUG_PRINTLN(jsonResponse);
         mode = SAVEEEPROM; interval = INTERVAL_1000;
         server.send(200, "application/json", jsonResponse); // Отправляем ответ
-        // Serial.printf("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
+        // DEBUG_PRINTF("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
 void acceptSet() {
   // Логирование всех параметров
-  Serial.printf("The SERVER has accepted EEPROM seconds: %d, %ld\n", seconds, millis() - lastSendTime);
+  DEBUG_PRINTF("The SERVER has accepted EEPROM seconds: %d, %ld\n", seconds, millis() - lastSendTime);
   
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
       String paramValue = server.arg(i);
       
       // Логирование параметров (раскомментируйте, если нужно)
-      // Serial.printf("Parameter: %s, Value: %s\n", paramName.c_str(), paramValue.c_str());
+      // DEBUG_PRINTF("Parameter: %s, Value: %s\n", paramName.c_str(), paramValue.c_str());
       
       if (paramName == "set0") upv.pv.set[0] = paramValue.toInt();
       else if (paramName == "set1") upv.pv.set[1] = paramValue.toInt();

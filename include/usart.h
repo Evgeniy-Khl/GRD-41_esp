@@ -19,5 +19,6 @@ void readData();
 void saveSet(uint8_t status);
 void printData(const char* mess, uint8_t size);
 // void sendData(int command, uint8_t *data = nullptr);
+void waitForCorrectData();
 
 #endif /* _USART_H */

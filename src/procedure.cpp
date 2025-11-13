@@ -5,7 +5,7 @@
  * Также показывает общую информацию о занятом и свободном месте.
  */
 void listFilesAndSizes() {
-  Serial.println("\n--- Список файлов в LittleFS ---");
+  MYDEBUG_PRINTLN("\n--- Список файлов в LittleFS ---");
   
   Dir dir = LittleFS.openDir("/");
   long totalSize = 0;
@@ -19,23 +19,23 @@ void listFilesAndSizes() {
       Serial.print(entry.name());
       Serial.print("\tРазмер: ");
       Serial.print(entry.size());
-      Serial.println(" Байт");
+      MYDEBUG_PRINTLN(" Байт");
       totalSize += entry.size();
       fileCount++;
       entry.close(); // Важно закрывать файл после использования
     }
   }
 
-  Serial.println("------------------------------------");
-  Serial.printf("Всего файлов: %d\n", fileCount);
-  Serial.printf("Общий размер: %ld Байт\n", totalSize);
+  MYDEBUG_PRINTLN("------------------------------------");
+  DEBUG_PRINTF("Всего файлов: %d\n", fileCount);
+  DEBUG_PRINTF("Общий размер: %ld Байт\n", totalSize);
 
   // Дополнительная информация о файловой системе
   FSInfo fs_info;
   LittleFS.info(fs_info);
-  Serial.printf("Всего места:  %d Байт\n", fs_info.totalBytes);
-  Serial.printf("Использовано: %d Байт\n", fs_info.usedBytes);
-  Serial.println("------------------------------------");
+  DEBUG_PRINTF("Всего места:  %d Байт\n", fs_info.totalBytes);
+  DEBUG_PRINTF("Использовано: %d Байт\n", fs_info.usedBytes);
+  MYDEBUG_PRINTLN("------------------------------------");
   // Просмотр содержимого файловой системы
   listDir("/");
 }
@@ -97,7 +97,7 @@ void initWiFiManag(void){
       // WIFIENABLE = 1;
       MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
       IPAddress ip = WiFi.localIP();
-      Serial.println(ip);	// Print ESP32 Local IP Address
+      MYDEBUG_PRINTLN(ip);	// Print ESP32 Local IP Address
       myIp[0] = ip[0]; // Первый байт IP-адреса
       myIp[1] = ip[1]; // Второй байт IP-адреса
       myIp[2] = ip[2]; // Третий байт IP-адреса
@@ -141,13 +141,10 @@ void initWiFiManag(void){
         configFile.close();
       }
       //============================== END SAVE =====================================
-      const int ledPin = 2;           // Set LED GPIO
-      pinMode(ledPin, OUTPUT);
-
       server.on("/", HTTP_GET, []() {
         mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 120;
         if (!LittleFS.exists("/index.html")) {
-          Serial.println("index.html not found");
+          MYDEBUG_PRINTLN("index.html not found");
         } else {
           File file = LittleFS.open("/index.html", "r");
           if (!file) {
@@ -159,9 +156,9 @@ void initWiFiManag(void){
         }
       });
       server.on("/setup", HTTP_GET, []() {
-        // Serial.printf("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
+        // DEBUG_PRINTF("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
         if (!LittleFS.exists("/index.html")) {
-          Serial.println("index.html not found");
+          MYDEBUG_PRINTLN("index.html not found");
         } else {
           File file = LittleFS.open("/setup.html", "r");
           if (!file) {
@@ -178,12 +175,12 @@ void initWiFiManag(void){
       server.onNotFound(notFoundHandler);
       
       server.begin();   // Start server
-      Serial.println("HTTP server started");
+      MYDEBUG_PRINTLN("HTTP server started");
     }
 }
 
 void listDir(const char *dir) {
-  Serial.printf("Directory contents: %s\n", dir);
+  DEBUG_PRINTF("Directory contents: %s\n", dir);
   fs::Dir root = LittleFS.openDir("/");
   while (root.next()) {
     Serial.print("  ");
@@ -194,12 +191,12 @@ void listDir(const char *dir) {
     }
     Serial.print(root.fileName());
     Serial.print("  SIZE: ");
-    Serial.println(root.fileSize());
+    MYDEBUG_PRINTLN(root.fileSize());
   }
 }
 
 //callback notifying us of the need to save config
 void saveConfigCallback() {
-  Serial.println("Should save config");
+  MYDEBUG_PRINTLN("Should save config");
   shouldSaveConfig = true;
 }

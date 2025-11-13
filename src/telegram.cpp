@@ -3,7 +3,6 @@ Complete project details at https://RandomNerdTutorials.com/telegram-control-esp
 https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 */
 #include <main.h>
-#include <MyTelegramBot.h>
 #include "server.h"
 
 // Определите язык

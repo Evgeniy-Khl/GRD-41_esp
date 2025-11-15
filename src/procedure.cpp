@@ -59,8 +59,8 @@ void initWiFiManag(void){
     wifiManager.addParameter(&custom_chatID);
 
     //------------------ reset settings ------------------------
-    if(recvData.pv.set[11] & 0x08){
-      recvData.pv.set[11] &= 0xF7;
+    if(recvData.pv.wifi & 0x10){
+      recvData.pv.wifi &= 0xEF;
     //   saveSetpoint();
       wifiManager.resetSettings();
     } 
@@ -70,8 +70,9 @@ void initWiFiManag(void){
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
    //----------------------------------------------------------
-    uint8_t tt = (recvData.pv.set[11] & 0x30) * 60;// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    uint8_t tt = (recvData.pv.wifi & 0x07) * 60;
     MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
+    if(tt < 180) tt = 180;
     wifiManager.setConfigPortalTimeout(tt);   
     //--------------------------------------------------------------
     // Пытаемся подключиться
@@ -107,8 +108,7 @@ void initWiFiManag(void){
           // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
           uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
           DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
-          uint8_t num = recvData.pv.node & 0x0F;
-          bot.sendMessage(chatID, "Climate-5.25  №" + String(num), "");
+          bot.sendMessage(chatID, "GRD  №" + String(recvData.pv.id & 0x0F), "");
           // BOTENABLE = 1;
           MYDEBUG_PRINTLN("bot.updateToken!");
       }

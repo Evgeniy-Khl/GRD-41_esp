@@ -47,19 +47,21 @@ enum Interval { INTERVAL_1000 = 1000, INTERVAL_4000 = 4000 };
 enum {T0, T1, T2, T3, TMR0, VENT, TMON, TMOFF, TMR1, ALRM, HIST, CHILL, INDEX};
 
 struct __attribute__((packed)) Rampv {
-    uint8_t model;       // 1 байт ind=0  модель прибора
-    uint8_t node;        // 1 байт ind=1  сетевой номер прибора
-    uint8_t modeCell;    // 1 байт ind=2  номер режима
-    uint8_t portFlag;    // 1 байт ind=3  Flags CHECK; SPEED; WORK; NEWBUTT; VENTIL; PERFECT; RESERVE; PURGING
-    int16_t t[4];        // 8 байт ind=4-ind=11  значения датчиков температуры
-    uint16_t set[INDEX]; // 24байт ind=12-ind=35 Установки
-    uint8_t fanSpeed;    // 1 байт ind=36 скорость вращения вентилятора
-    uint8_t pvOut;       // 1 байт ind=37 активные выходы реле
-    uint8_t dsplPW;      // 1 байт ind=38 мощность подаваемая на тены
-    uint16_t errors;     // 2 байт ind=39 ошибки
-    uint8_t currHour;    // 1 байт ind=40 часы
-    uint8_t currMin;     // 1 байт ind=41 минуты
-    uint8_t currSec;     // 1 байт ind=42 секунды
+    uint8_t model;       // 1 байт модель прибора
+    uint8_t id;          // 1 байт сетевой номер прибора
+    uint8_t wifi;        // 1 байт подключение к сети
+    uint8_t reserve;     // 1 байт резерв
+    uint8_t modeCell;    // 1 байт номер режима
+    uint8_t portFlag;    // 1 байт Flags CHECK; SPEED; WORK; NEWBUTT; VENTIL; PERFECT; RESERVE; PURGING
+    int16_t t[4];        // 8 байт значения датчиков температуры
+    uint16_t set[INDEX]; // 24байт Установки
+    uint8_t fanSpeed;    // 1 байт скорость вращения вентилятора
+    uint8_t pvOut;       // 1 байт активные выходы реле
+    uint8_t dsplPW;      // 1 байт мощность подаваемая на тены
+    uint16_t errors;     // 1 байт ошибки
+    uint8_t currHour;    // 1 байт часы
+    uint8_t currMin;     // 1 байт минуты
+    uint8_t currSec;     // 1 байт секунды
 };
 #define RAMPV_SIZE sizeof(Rampv) // определение размера
 union Upv{

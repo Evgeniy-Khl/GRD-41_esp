@@ -18,7 +18,7 @@ bool shouldSaveConfig = false, wifiEnable = false;
 Upv sendData;
 Upv recvData;
 // Массив для приема / передачи по UART
-uint8_t receiveBuff[BUF_CAPACITY], transmitBuff[BUF_CAPACITY], myIp[6]; 
+uint8_t receiveBuff[RAMPV_SIZE+4], transmitBuff[BUF_CAPACITY], myIp[6]; 
 uint8_t earlyMode = 0, mode = READDEFAULT, tmrResetMode = 0, errors, lastError, status, seconds = 0;
 int8_t tmrTelegramOff = 30;
 uint16_t begHeapSize, previousHeapSize, speedFan[8] = {1000,1200,1400,1600,1800,2000,2200,2400};
@@ -70,7 +70,7 @@ void setup(){
   // ------------------------------ БЛОКИРУЮЩИЙ ВЫЗОВ ----------------------------------------
   waitForCorrectData();
   //---------------------------- инициализация WiFiManager -----------------------------------
-  if(recvData.pv.set[11] & 0x30) initWiFiManag(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  if(recvData.pv.wifi) initWiFiManag();
   else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
   //------------------------------------------------------------------------------
     begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
@@ -106,6 +106,7 @@ void loop(){
       
       // Установка яркости LED (от 0 до 1023)
       // Для ESP8266: analogWrite(PIN, 0) = HIGH (OFF), analogWrite(PIN, 1023) = LOW (ON)
+      if(!wifiEnable) brightness = 1023;
       analogWrite(LED_PIN, 1023 - brightness); 
       
       // Изменение яркости для следующего шага

@@ -30,7 +30,7 @@ void sendStruct() {
     mySerial.write(RAMPV_END_MARKER);
     
     Serial.print("Отправлено байт (46 данных + 4 протокол): ");
-    Serial.println(RAMPV_SIZE + 4);
+    MYDEBUG_PRINTLN(RAMPV_SIZE + 4);
 }
 
 void getData(uint8_t command){
@@ -83,7 +83,7 @@ void readData(){
                     byte receivedChecksum = receiveBuff[RAMPV_SIZE+1]; // The last byte is the checksum
                     byte calculatedChecksum = calculateChecksum(receiveBuff, RAMPV_SIZE+1);
                     long readTime = millis();
-                    //DEBUG_PRINTF("Read VALUES: %dsec. ",seconds);
+                    DEBUG_PRINTF("Read VALUES: %dsec. ",seconds);
                     if (receivedChecksum == calculatedChecksum) {
                         memcpy(recvData.dataUnion, &receiveBuff[1], RAMPV_SIZE);
                         //MYDEBUG_PRINTLN("Valid VALUES.------------------------");
@@ -138,7 +138,7 @@ void printData(const char* mess, uint8_t size){
         if(i==size-1) MYDEBUG_PRINT("|| ");
     }              
     MYDEBUG_PRINTLN("  size:"+String(size));
-    DEBUG_PRINTF("model:%u; node:%u; mode:%u; port:0x%02x; ",recvData.pv.model,recvData.pv.node,recvData.pv.modeCell,recvData.pv.portFlag);
+    DEBUG_PRINTF("model:%u; id:%u; mode:%u; port:0x%02x; ",recvData.pv.model,recvData.pv.id,recvData.pv.modeCell,recvData.pv.portFlag);
     DEBUG_PRINTF("t0:%3.1f; t1:%3.1f; t2:%3.1f; t3:%3.1f;\n",
         (float)recvData.pv.t[0]/10,(float)recvData.pv.t[1]/10,(float)recvData.pv.t[2]/10,(float)recvData.pv.t[3]/10);
     DEBUG_PRINTF("S0:%u; S1:%u; S2:%u; S3:%u; ",recvData.pv.set[0],recvData.pv.set[1],recvData.pv.set[2],recvData.pv.set[3]);
@@ -147,76 +147,92 @@ void printData(const char* mess, uint8_t size){
     
 }
 
+/**
+ * @brief Проверяет наличие данных, принимает их побайтово и проверяет протокол.
+ *
+ * @return true, если полный и корректный пакет Rampv был успешно принят.
+ * @return false, в противном случае.
+ */
+bool checkAndReceiveData() {
+    // Статические переменные сохраняют свое значение между вызовами функции (состояние автомата)
+    static uint8_t receiveIndex = 0;
+    static bool receivingData = false;
+    static uint8_t receivedChecksum = 0;
+    static Upv tempReceivedUnion; // Временное хранилище для приема
+
+    if (mySerial.available()) {
+        uint8_t incomingByte = mySerial.read();
+
+        if (!receivingData) {
+            // СОСТОЯНИЕ 1: Ищем Стартовый Маркер
+            if (incomingByte == RAMPV_START_MARKER) {
+                receivingData = true;
+                receiveIndex = 0;
+                // В loop() это можно не печатать, но для отладки полезно:
+                // MYDEBUG_PRINTLN("Стартовый маркер (0xAA) получен.");
+            }
+        } else {
+            // СОСТОЯНИЕ 2: Принимаем Данные и Протокол
+            if (receiveIndex < RAMPV_SIZE) {
+                // Прием байтов структуры
+                tempReceivedUnion.dataUnion[receiveIndex] = incomingByte;
+                receiveIndex++;
+            } else if (receiveIndex == RAMPV_SIZE) {
+                // Прием Контрольной Суммы
+                receivedChecksum = incomingByte;
+                receiveIndex++;
+            } else if (receiveIndex == RAMPV_SIZE + 1) {
+                // Прием Конечного Маркера
+                if (incomingByte == RAMPV_END_MARKER) {
+                    // Пакет получен! Проверка КС
+                    uint8_t expectedChecksum = calculateChecksum(tempReceivedUnion.dataUnion, RAMPV_SIZE);
+
+                    if (receivedChecksum == expectedChecksum) {
+                        // УСПЕХ: Копируем данные в глобальную структуру
+                        recvData.pv = tempReceivedUnion.pv;
+                        // Сброс состояния и возврат успеха
+                        receivingData = false;
+                        receiveIndex = 0;
+                        return true; 
+                    } else {
+                        Serial.print("Ошибка КС: Принято="); Serial.print(receivedChecksum, HEX);
+                        Serial.print(", Ожидалось="); MYDEBUG_PRINTLN(expectedChecksum, HEX);
+                    }
+                } else {
+                    MYDEBUG_PRINTLN("Ошибка: Неверный конечный маркер (0x55).");
+                }
+                
+                // Сброс состояния приема для поиска нового пакета
+                receivingData = false;
+                receiveIndex = 0;
+            }
+        }
+    }
+    return false; // Пакет не полный или не корректный
+}
+
 // Функция блокирует выполнение, пока не получит корректный пакет
 void waitForCorrectData() {
     MYDEBUG_PRINTLN("--- Ожидание корректного пакета данных в setup()...");
     
-    // Переменные для отслеживания состояния приема
-    uint8_t receiveIndex = 0;
-    bool receivingData = false;
-    uint8_t receivedChecksum = 0;
-    Upv tempReceivedUnion; // Временное хранилище для приема
-
-    // Блокирующий цикл
     while (true) {
-        // --- ВИЗУАЛЬНАЯ ИНДИКАЦИЯ: Две короткие вспышки ---
+        // --- ВИЗУАЛЬНАЯ ИНДИКАЦИЯ: Две короткие вспышки (блокирующий режим) ---
         for (int i = 0; i < 2; i++) {
             digitalWrite(LED_PIN, LOW); // LED ON
             delay(FLASH_DELAY);
             digitalWrite(LED_PIN, HIGH); // LED OFF
-            delay(FLASH_DELAY*5);
+            delay(FLASH_DELAY);
+        }
+        delay(100); 
+        // ----------------------------------------------------
+
+        // Вызов неблокирующей функции. Если она вернет true, выходим.
+        if (checkAndReceiveData()) {
+            MYDEBUG_PRINTLN("Пакет принят и ЧЕКСУММ СОВПАЛ. Выход из setup().");
+            return; 
         }
         
-        // ----------------------------------------------------
-        if (mySerial.available()) {
-            uint8_t incomingByte = mySerial.read();
-
-            if (!receivingData) {
-                // СОСТОЯНИЕ 1: Ищем Стартовый Маркер
-                if (incomingByte == RAMPV_START_MARKER) {
-                    receivingData = true;
-                    receiveIndex = 0;
-                    MYDEBUG_PRINTLN("Стартовый маркер (0xAA) получен. Начинаем прием...");
-                }
-            } else {
-                // СОСТОЯНИЕ 2: Принимаем Данные и Протокол
-                if (receiveIndex < RAMPV_SIZE) {
-                    // Прием байтов структуры
-                    tempReceivedUnion.dataUnion[receiveIndex] = incomingByte;
-                    receiveIndex++;
-                } else if (receiveIndex == RAMPV_SIZE) {
-                    // Прием Контрольной Суммы
-                    receivedChecksum = incomingByte;
-                    receiveIndex++;
-                } else if (receiveIndex == RAMPV_SIZE + 1) {
-                    // Прием Конечного Маркера
-                    if (incomingByte == RAMPV_END_MARKER) {
-                        // Пакет получен! Проверка КС
-                        uint8_t expectedChecksum = calculateChecksum(tempReceivedUnion.dataUnion, RAMPV_SIZE);
-
-                        if (receivedChecksum == expectedChecksum) {
-                            // **УСПЕХ** - Копируем данные в основную структуру и ВЫХОДИМ.
-                            recvData.pv = tempReceivedUnion.pv; 
-                            MYDEBUG_PRINTLN("Пакет принят и ЧЕКСУММ СОВПАЛ. Выход из setup().");
-                            return; 
-                        } else {
-                            // Ошибка контрольной суммы
-                            MYDEBUG_PRINT("Ошибка КС: Принято=");
-                            MYDEBUG_PRINT(receivedChecksum, HEX);
-                            MYDEBUG_PRINT(", Ожидалось=");
-                            MYDEBUG_PRINTLN(expectedChecksum, HEX);
-                        }
-                    } else {
-                        MYDEBUG_PRINTLN("Ошибка: Неверный конечный маркер (0x55). Сброс приема.");
-                    }
-                    
-                    // Сброс состояния приема для поиска нового пакета
-                    receivingData = false;
-                    receiveIndex = 0;
-                }
-            }
-        }
-        // Задержка необходима для корректной работы ESP8266 (Wi-Fi и другие задачи)
-        delay(500); 
+        // Небольшая задержка, необходимая для стабильности ESP8266
+        delay(1); 
     }
 }
